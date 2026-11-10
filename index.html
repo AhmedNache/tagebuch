@@ -252,6 +252,13 @@ details.tips ul{margin:0 0 14px;padding-left:20px;font-size:14.5px}
 details.tips li{margin:7px 0}
 details.tips ul.glist{list-style:none;padding-left:0}
 details.tips ul.glist li{padding:8px 0;border-top:1px solid var(--border)}
+.tip-food{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px 16px;margin:0 0 10px;box-shadow:var(--shadow);font-size:14.5px}
+.tf-head{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.tf-head b{font-size:16px}
+.tf-head .ti{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,#ffb547 22%,var(--surface));font-size:19px;flex:none}
+.tf-kurz{font-size:13px;font-weight:700;color:var(--accent)}
+.tf-row{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--border)}
+.tf-lb{flex:none;width:66px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:2px}
 .tip-special{border-radius:18px;padding:14px 16px;margin:0 0 10px;font-size:14.5px;background:color-mix(in srgb,var(--accent) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
 .tip-special>b{display:block;font-size:16px;margin-bottom:6px}
 .toggle{display:flex;align-items:center;gap:12px;margin:14px 0 4px;cursor:pointer}
@@ -290,7 +297,7 @@ details.tips ul.glist li{padding:8px 0;border-top:1px solid var(--border)}
 <script>
 'use strict';
 /* ---------- Grunddaten ---------- */
-const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.5';
+const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.6';
 const RATINGS = [null,
   {e:'😖', t:'sehr schlecht', c:'#e5484d'},
   {e:'🙁', t:'schlecht',      c:'#f76b15'},
@@ -719,12 +726,20 @@ const TIPS = {
     ['🚑 Notfall', '112 anrufen und ehrlich sagen, was genommen wurde. Bewusstlose Personen in die stabile Seitenlage legen und nicht allein lassen.']
   ],
   lsd:{
+    essen:{kurz:'Leichte Mahlzeit 2–3 Std. vorher ist okay',
+      vorher:'Eine leichte Mahlzeit 2–3 Std. vorher ist gut. Ein sehr voller Magen kann das Anfluten etwas verzögern. Ganz nüchtern über viele Stunden ist aber auch nicht ideal (Kreislauf).',
+      waehrend:'Essen fällt oft schwer und schmeckt seltsam. Wasser, Obst, Saft und einfache Snacks bereitlegen. Kleine Schlucke regelmäßig trinken.',
+      danach:'Eine richtige, warme Mahlzeit und viel Wasser helfen beim Runterkommen.'},
     vorher:['Den ganzen Tag und den nächsten Morgen freihalten.','<b>Set & Setting:</b> gute Stimmung, vertrauter Ort, Menschen, denen du vertraust.','Bei den ersten Malen oder hohen Dosen: eine nüchterne Begleitperson (Tripsitter).','Pappen schwanken stark im Gehalt. Lieber mit einem Teil anfangen und mit dem Ehrlich-Test prüfen, ob es wirklich LSD ist.'],
     waehrend:['<b>Nicht nachlegen:</b> Das Anfluten kann bis zu 1,5 Std. dauern.','Wasser, Snacks, Decke und eine Playlist vorher bereitlegen.','Schwierige Phase? Raum wechseln, Musik ändern, ruhig atmen und dich daran erinnern: Es ist die Substanz, und es geht vorbei.'],
     danach:['Ruhiger nächster Tag, gut essen, schlafen.','Erlebnisse hier im Tagebuch aufschreiben, solange sie frisch sind.','Mindestens 1–2 Wochen Pause, vorher ist die Toleranz noch erhöht.'],
     spezial:[['⚠️ Bitter = ausspucken', 'LSD schmeckt nach nichts. Ist die Pappe <b>bitter</b> oder macht sie die Zunge <b>taub</b>, kann es NBOMe sein. Das ist deutlich gefährlicher, also sofort ausspucken.']]
   },
   pilze:{
+    essen:{kurz:'Möglichst leerer Magen (3–4 Std. nichts Schweres)',
+      vorher:'3–4 Std. vorher nichts Schweres oder Fettiges essen. Ein voller Magen verstärkt die Übelkeit und macht die Wirkung später und schwächer, das verleitet zum Nachlegen. Ein kleiner Snack 1–2 Std. vorher (Banane, Toast) ist okay. Das gilt auch für Lemon Tek und Tee.',
+      waehrend:'Ingwertee oder Ingwer-Bonbons gegen Übelkeit. Wasser bereithalten. Später gehen leichte Snacks wie Obst oder Nüsse.',
+      danach:'Eine richtige Mahlzeit und genug trinken.'},
     vorher:['Mit einer <b>Feinwaage (0,01 g)</b> abwiegen, nicht schätzen.','Sorten sind unterschiedlich stark. Pilze zermahlen und mischen, damit der Gehalt gleichmäßiger ist.','3–4 Std. vorher nichts Schweres essen, das hilft gegen Übelkeit. Ingwertee hilft auch.','<b>Nie selbst gesammelte Pilze</b> ohne sichere Bestimmung: Verwechslung mit Giftpilzen ist lebensgefährlich.','Set & Setting wie bei LSD: ruhiger Ort, vertraute Menschen.'],
     waehrend:['Übelkeit am Anfang ist normal und geht meist vorbei.','<b>Nicht nachlegen</b>, wenn nach 45 Min. noch wenig kommt. Die Wirkung kann spät einsetzen.','Natur, Musik und Dunkelheit verstärken die Wirkung. Licht und Gespräche holen dich eher zurück.'],
     danach:['Erlebnisse aufschreiben (Integration).','Mindestens 1–2 Wochen Pause. Toleranz auch gegenüber LSD und 2C-B.'],
@@ -734,22 +749,38 @@ const TIPS = {
     ]
   },
   mdma:{
+    essen:{kurz:'Leichte Mahlzeit 2–3 Std. vorher',
+      vorher:'Eine leichte, ausgewogene Mahlzeit 2–3 Std. vorher. Direkt davor viel essen verzögert die Wirkung, dann wird oft zu früh nachgelegt. Den ganzen Tag nichts essen belastet den Kreislauf.',
+      waehrend:'Der Appetit verschwindet fast ganz. Trotzdem ab und zu etwas Obst oder Salziges. Isotonische Getränke helfen, die Salze im Gleichgewicht zu halten. Kein Alkohol.',
+      danach:'Am nächsten Tag gut essen: Eiweiß, Obst, Gemüse. Auch wenn du keinen Hunger hast, das hilft gegen das Tief.'},
     vorher:['<b>Testen:</b> Pillen schwanken stark, manche haben über 200 mg.','Pillen teilen und mit einer kleinen Menge anfangen. Faustregel: ca. 1–1,5 mg pro kg Körpergewicht.','Mindestens 6 Wochen, besser 3 Monate Abstand zum letzten Mal.','<b>Nicht mit Antidepressiva:</b> Mit SSRI wirkt es schwächer, mit MAO-Hemmern ist es lebensgefährlich.'],
     waehrend:['<b>Trinken, aber nicht zu viel:</b> beim Tanzen ca. 500 ml pro Stunde, in Ruhe ca. 250 ml. Zu viel Wasser ist auch gefährlich. Isotonische Getränke sind gut.','Regelmäßig Pausen an der frischen Luft oder im Chill-out machen, Hitze meiden.','Kaugummi hilft gegen Kiefermahlen.','Nachlegen bringt kaum mehr Euphorie, aber mehr Nebenwirkungen und einen schlimmeren Absturz.','<b>Warnzeichen für Überhitzung:</b> Verwirrung, starke Kopfschmerzen, Übelkeit, heiße trockene Haut. Sofort Hilfe holen.'],
     danach:['Viel schlafen, gut essen (Obst, Gemüse, Eiweiß).','Ein Stimmungstief 1–3 Tage danach ist normal. Plane keine stressigen Tage ein.']
   },
   '2cb':{
+    essen:{kurz:'Leerer bis leichter Magen (2–3 Std. vorher)',
+      vorher:'2–3 Std. vorher nur leicht oder gar nichts essen. Mit vollem Magen kommt die Wirkung deutlich später und schwächer, und die Übelkeit ist stärker. Da wird schnell nachgelegt, was bei 2C-B riskant ist.',
+      waehrend:'Wasser bereithalten. Gegen Übelkeit helfen Ingwer und frische Luft. Später gehen leichte Snacks.',
+      danach:'Normal essen und trinken.'},
     vorher:['<b>Genau dosieren:</b> Wenige mg machen einen großen Unterschied. Beim ersten Mal im unteren Bereich bleiben.','Testen: Unter dem Namen „2C-B“ oder „Tusi“ wird oft etwas ganz anderes verkauft (Tusi ist meist eine Mischung aus Ketamin und MDMA).','Leerer Magen hilft gegen Übelkeit.','Set & Setting beachten.'],
     waehrend:['<b>Nicht nachlegen:</b> Das Anfluten kann bis zu 1 Std. dauern.','<b>Nicht ziehen:</b> In der Nase ist es sehr schmerzhaft und viel stärker.','Zusammen mit MDMA verstärkt sich alles, auch die Überhitzung.'],
     danach:['Meist wenig Nachwirkung. Trotzdem ausruhen und aufschreiben.','Toleranz auch gegenüber LSD und Pilzen.']
   },
   cannabis:{
+    essen:{kurz:'Rauchen: vorher essen hilft · Edibles: Essen verändert alles',
+      vorher:'<b>Geraucht/verdampft:</b> Vorher etwas zu essen beugt Schwindel und Kreislaufproblemen vor, denn niedriger Blutzucker macht es schlimmer.<br><b>Edibles:</b> Mit vollem Magen kommt die Wirkung später (bis 3 Std.) und dauert länger. Fettiges Essen kann sie verstärken. Auf leeren Magen kommt sie schneller und heftiger. Am besten immer gleich machen, z. B. nach einer leichten Mahlzeit, dann kannst du es einschätzen.',
+      waehrend:'Heißhunger („Fressflash“) ist normal. Leg dir vorher Snacks bereit, die dir gut tun. Wird dir schwindelig, helfen Saft oder etwas Süßes.',
+      danach:'Viel Wasser trinken, gegen den trockenen Mund und für den nächsten Morgen.'},
     vorher:['Verdampfen (Vaporizer) schont die Lunge mehr als Rauchen. Ohne Tabak gibt es keine Nikotinsucht.','<b>Edibles:</b> mit 2,5–5 mg THC anfangen.','Bei Angst oder Unruhe lieber weniger oder Sorten mit mehr CBD.'],
     waehrend:['<b>Bei Edibles 2 Std. warten</b>, bevor du mehr nimmst. Das ist der häufigste Fehler!','Zu viel erwischt? Hinlegen, ruhig atmen, etwas Süßes essen oder trinken. Es geht vorbei.','Mit Alkohol kommt es schneller zu Schwindel und Übelkeit.'],
     danach:['<b>Nicht fahren:</b> In Deutschland gilt seit 2024 ein THC-Grenzwert, und THC ist lange nachweisbar.','Regelmäßige Pausen halten die Toleranz niedrig.'],
     spezial:[['🍪 Edibles', 'Gegessen wirkt THC <b>viel stärker und länger</b> als geraucht, oft 6–8 Std. Wähle „geschluckt“ als Einnahme und trag die mg THC ein, dann passt der Verlauf.']]
   },
   hhc:{
+    essen:{kurz:'Wie Cannabis: vorher essen hilft gegen Schwindel',
+      vorher:'<b>Vape:</b> Vorher etwas essen, denn mit niedrigem Blutzucker kommen Schwindel und Übelkeit schneller.<br><b>Edibles:</b> Mit vollem Magen kommt die Wirkung später und dauert länger, auf leeren Magen kommt sie schneller und stärker. Am besten immer gleich machen.',
+      waehrend:'Snacks und Wasser bereitlegen. Bei Schwindel helfen Saft oder etwas Süßes.',
+      danach:'Viel trinken. Kopfschmerzen nach HHC kommen oft auch vom Flüssigkeitsmangel.'},
     vorher:['Gehalt und Zusätze von HHC-Produkten sind oft unklar. Vapes können Streckmittel enthalten.','<b>HHC-P und HHC-O</b> sind viel stärker als HHC, nicht verwechseln.','In Deutschland ist HHC seit Juni 2024 verboten (NpSG).'],
     waehrend:['Wenige Züge nehmen, dann 10–15 Min. warten.','Ungewöhnlich stark oder seltsam? Aufhören. Es können synthetische Cannabinoide drin sein.','Edibles: wie bei Cannabis 2 Std. warten, bevor du mehr nimmst.'],
     danach:['Kopfschmerzen und Benommenheit sind häufiger als bei Cannabis. Viel trinken.','Nicht fahren.']
@@ -760,6 +791,8 @@ function tipsHtml(key){
   const name = PROFILES[key] ? PROFILES[key].name : '';
   let html = '';
   if(t){
+    if(t.essen) html += `<div class="tip-food"><div class="tf-head"><span class="ti">🍽️</span><div><b>Essen &amp; Trinken</b><div class="tf-kurz">${t.essen.kurz}</div></div></div>
+      ${[['vorher', 'Vorher'], ['waehrend', 'Während'], ['danach', 'Danach']].map(([k, lb]) => `<div class="tf-row"><span class="tf-lb">${lb}</span><div>${t.essen[k]}</div></div>`).join('')}</div>`;
     (t.spezial || []).forEach(([h, d]) => { html += `<div class="tip-special"><b>${h}</b><div>${d}</div></div>`; });
     [['vorher', '🧭', 'Vorher'], ['waehrend', '🌀', 'Während'], ['danach', '🌅', 'Danach']].forEach(([k, ic, lb]) => {
       if(t[k]) html += `<details class="tips"><summary><span class="ti">${ic}</span>${lb}</summary><ul>${t[k].map(x => `<li>${x}</li>`).join('')}</ul></details>`;
@@ -1125,7 +1158,8 @@ function updateFormWarnings(){
     const {prof, di, phs} = tm;
     $('#f_tl').innerHTML = `<div class="card" style="margin-top:12px"><div class="small"><b>⏱ Erwarteter Verlauf</b>${prof.assumed ? ` <span class="muted">(angenommen: ${ROUTE_NAMES[prof.route]})</span>` : ''}</div>
       ${doseScaleHtml(di)}
-      ${timelineHtml([{name:'', ts:e.ts, phs}], Date.now())}<div class="small">${summaryText(phs)}</div></div>`;
+      ${timelineHtml([{name:'', ts:e.ts, phs}], Date.now())}<div class="small">${summaryText(phs)}</div>
+      ${TIPS[prof.key] && TIPS[prof.key].essen ? `<div class="small" style="margin-top:8px">🍽️ <b>Essen:</b> ${TIPS[prof.key].essen.kurz}</div>` : ''}</div>`;
   } else $('#f_tl').innerHTML = '';
 }
 function saveForm(){
