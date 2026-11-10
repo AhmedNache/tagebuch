@@ -60,7 +60,7 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute
 
 /* Tab-Leiste */
 .tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);z-index:10}
-.tabs button{position:relative;flex:1;background:none;border:0;color:var(--muted);padding:9px 0 7px;font-size:10.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .2s}
+.tabs button{position:relative;flex:1;background:none;border:0;color:var(--muted);padding:9px 0 7px;font-size:10.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
 .tabs button.on{color:var(--accent)}
 .tabs button.on::before{content:'';position:absolute;top:-1px;left:50%;width:26px;height:3px;margin-left:-13px;border-radius:0 0 3px 3px;background:var(--grad)}
 .tabs svg{width:25px;height:25px}
@@ -242,6 +242,18 @@ ol.steps li{margin:5px 0}
 .dose-labels{display:flex;font-size:10px;color:var(--muted);margin-top:6px}
 .dose-labels span{flex:1;text-align:center}
 .dose-labels span.on{color:var(--text);font-weight:800}
+details.tips{background:var(--surface);border:1px solid var(--border);border-radius:18px;margin:0 0 10px;padding:0 16px;box-shadow:var(--shadow)}
+details.tips summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px 0;color:var(--text);font-weight:700}
+details.tips summary::-webkit-details-marker{display:none}
+details.tips summary::after{content:'›';margin-left:auto;font-size:22px;line-height:1;color:var(--muted);transform:rotate(90deg);transition:transform .2s}
+details.tips[open] summary::after{transform:rotate(-90deg)}
+details.tips .ti{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:var(--surface2);font-size:17px}
+details.tips ul{margin:0 0 14px;padding-left:20px;font-size:14.5px}
+details.tips li{margin:7px 0}
+details.tips ul.glist{list-style:none;padding-left:0}
+details.tips ul.glist li{padding:8px 0;border-top:1px solid var(--border)}
+.tip-special{border-radius:18px;padding:14px 16px;margin:0 0 10px;font-size:14.5px;background:color-mix(in srgb,var(--accent) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+.tip-special>b{display:block;font-size:16px;margin-bottom:6px}
 .toggle{display:flex;align-items:center;gap:12px;margin:14px 0 4px;cursor:pointer}
 .toggle>span{flex:1}
 .toggle input{-webkit-appearance:none;appearance:none;flex:none;width:51px;height:31px;min-height:0;padding:0;border-radius:16px;background:var(--surface2);border:1px solid var(--border);position:relative;transition:background .2s;cursor:pointer;box-shadow:none}
@@ -278,7 +290,7 @@ ol.steps li{margin:5px 0}
 <script>
 'use strict';
 /* ---------- Grunddaten ---------- */
-const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.4';
+const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.5';
 const RATINGS = [null,
   {e:'😖', t:'sehr schlecht', c:'#e5484d'},
   {e:'🙁', t:'schlecht',      c:'#f76b15'},
@@ -287,7 +299,7 @@ const RATINGS = [null,
   {e:'😄', t:'sehr gut',      c:'#1f9d6b'}];
 const MOODS = [null,'😞','😕','😐','🙂','😊'];
 const UNITS = ['mg','g','µg','g (frisch)','ml','Stück','Teile','Lines','Züge','Gläser','Joints','Flaschen'];
-const ROUTES = ['geschluckt','geraucht','verdampft','gezogen (Nase)','getrunken','unter die Zunge','gespritzt','andere'];
+const ROUTES = ['geschluckt','Lemon Tek','geraucht','verdampft','gezogen (Nase)','getrunken','unter die Zunge','gespritzt','andere'];
 const SUGGEST = ['LSD','Pilze','MDMA','2C-B','Cannabis','HHC','Alkohol','Kokain','Speed','Ketamin','GHB/GBL','Nikotin','Koffein'];
 
 /* Bekannte Substanzen (für Safer-Use-Hinweise) */
@@ -464,7 +476,7 @@ const PHASES = [
   {k:'peak',   label:'Höhepunkt',   desc:'stärkste Wirkung'},
   {k:'offset', label:'Abklingen',   desc:'die Wirkung lässt nach'},
   {k:'after',  label:'Nachwirkung', desc:'Nachwehen und Erholung'}];
-const ROUTE_NAMES = {oral:'geschluckt', smoked:'geraucht', nasal:'gezogen (Nase)'};
+const ROUTE_NAMES = {oral:'geschluckt', lemon:'Lemon Tek', smoked:'geraucht', nasal:'gezogen (Nase)'};
 const PROFILES = {
   alkohol:{name:'Alkohol', def:'oral', routes:{oral:{onset:[5,15],comeup:[15,30],peak:[30,90],offset:[60,180],after:[360,720]}},
     fx:{onset:['noch kaum spürbar'], comeup:['Wärme, Lockerheit','gesprächiger'], peak:['Enthemmung','Reaktion und Gleichgewicht schlechter','bei viel: Übelkeit, Lallen'], offset:['Müdigkeit','Stimmung kann kippen'], after:['Kater: Kopfschmerz, Durst, Übelkeit','schlechter Schlaf']},
@@ -499,7 +511,7 @@ const PROFILES = {
   hhc:{name:'HHC', def:'smoked', routes:{smoked:{onset:[1,5],comeup:[5,15],peak:[30,60],offset:[60,120],after:[120,360]}, oral:{onset:[30,120],comeup:[30,60],peak:[120,240],offset:[120,300],after:[360,720]}},
     fx:{onset:['erstes Kribbeln'], comeup:['Entspannung','Herzklopfen möglich','trockener Mund'], peak:['High, ähnlich wie Cannabis','Sinne intensiver','Zeitgefühl verändert','bei viel: Unruhe, Angst, Schwindel'], offset:['ruhiger werden','Müdigkeit'], after:['Benommenheit','evtl. Kopfschmerzen']},
     tip:'Der Gehalt von HHC-Produkten schwankt stark, und es gibt kaum Forschung dazu. HHC-P und HHC-O sind viel stärker, also nicht verwechseln. In Deutschland ist HHC seit 2024 verboten (NpSG).'},
-  pilze:{name:'Pilze (Magic Mushrooms)', def:'oral', routes:{oral:{onset:[20,40],comeup:[15,30],peak:[60,120],offset:[60,120],after:[120,360]}},
+  pilze:{name:'Pilze (Magic Mushrooms)', def:'oral', routes:{oral:{onset:[20,40],comeup:[15,30],peak:[60,120],offset:[60,120],after:[120,360]}, lemon:{onset:[10,20],comeup:[10,20],peak:[60,90],offset:[45,90],after:[120,300]}},
     fx:{onset:['evtl. Übelkeit','Gähnen'], comeup:['Kribbeln, Lachen','Farben intensiver'], peak:['Muster und Visuals','starke Gefühle','verändertes Zeitgefühl'], offset:['sanftes Ausklingen','nachdenklich'], after:['Müdigkeit','Nachglühen']},
     tip:'Übelkeit am Anfang ist normal. Nicht nachlegen, wenn nach 1 Std. noch wenig kommt.'},
   benzos:{name:'Benzos', def:'oral', routes:{oral:{onset:[15,45],comeup:[15,30],peak:[60,180],offset:[240,600],after:[360,1440]}},
@@ -517,6 +529,7 @@ function routeKey(r){
   if(['geschluckt','getrunken','unter die zunge'].includes(r)) return 'oral';
   if(['geraucht','verdampft'].includes(r)) return 'smoked';
   if(r.startsWith('gezogen')) return 'nasal';
+  if(r === 'lemon tek') return 'lemon';
   return null;
 }
 function profileFor(substance, route){
@@ -542,7 +555,8 @@ const DOSE_NAMES = ['Schwelle', 'leicht', 'normal', 'stark', 'sehr stark'];
 const DOSE_COLORS = ['#9ba1a6', '#46a758', '#2f9c8f', '#f5a524', '#e5484d'];
 const DOSES = {
   lsd:{oral:{unit:'µg', lv:[15,25,75,150,300], pieces:'Pappen enthalten meist 50–200 µg, der Gehalt schwankt stark.'}},
-  pilze:{oral:{unit:'g', lv:[0.2,0.5,1,2.5,5], note:'Gilt für getrocknete Pilze (Psilocybe cubensis). Frische Pilze wiegen ca. 10× so viel, dafür gibt es die Einheit „g (frisch)“.'}},
+  pilze:{oral:{unit:'g', lv:[0.2,0.5,1,2.5,5], note:'Gilt für getrocknete Pilze (Psilocybe cubensis). Frische Pilze wiegen ca. 10× so viel, dafür gibt es die Einheit „g (frisch)“.'},
+         lemon:{unit:'g', lv:[0.15,0.35,0.75,1.9,3.75], note:'Lemon Tek wirkt stärker, deshalb liegen die Richtwerte ca. ¼ niedriger als sonst (getrocknete Pilze).'}},
   mdma:{oral:{unit:'mg', lv:[30,40,75,140,180], note:'Faustregel aus der Drogenhilfe: ca. 1–1,5 mg pro kg Körpergewicht.', pieces:'Pillen enthalten oft 100–250 mg MDMA, der Gehalt schwankt stark. Drug-Checking nutzen, wo es geht.'}},
   '2cb':{oral:{unit:'mg', lv:[3,5,15,25,35], note:'Sehr steile Dosis-Kurve: Wenige mg machen einen großen Unterschied.', pieces:'Der Gehalt von 2C-B-Pillen schwankt stark (oft 5–30 mg).'}},
   cannabis:{smoked:{unit:'g', lv:[0.02,0.05,0.15,0.4,0.8], puffs:[1,2,3,6,10], note:'Grobe Werte für Gras mit ca. 15 % THC. 1 Joint wird mit ca. 0,35 g gerechnet.'}, oral:{unit:'mg', lv:[1,2.5,5,15,30], note:'Gemeint sind mg THC (steht auf der Packung).'}},
@@ -693,6 +707,72 @@ function verlaufHtml(e, now){
 }
 const summaryText = phs => `Wirkung ab ca. <b>${fmtWhen(phs[1].from)}</b> · Höhepunkt ca. <b>${fmtTime(phs[2].from)}–${fmtTime(phs[2].to)}</b> · vorbei ca. <b>${fmtWhen(phs[3].to)}</b>`;
 
+/* ---------- Safer-Use-Tipps ---------- */
+const TIPS = {
+  general:[
+    ['🧪 Testen', 'Reagenztests (z. B. Marquis, Ehrlich) zeigen, <b>ob</b> drin ist, was drin sein soll, aber nicht <b>wie viel</b>. Wo es Drug-Checking gibt (z. B. in Berlin), nutze es.'],
+    ['🐢 Wenig anfangen', 'Mit einer kleinen Menge starten und die Wirkung abwarten. Im Tab „Wirkung“ siehst du, wann sie kommen sollte.'],
+    ['👥 Nicht allein', 'Am besten mit Leuten, denen du vertraust. Eine nüchterne Person in der Nähe ist Gold wert.'],
+    ['🔀 Mischkonsum', 'Mischungen sind deutlich unberechenbarer. Die App warnt bei bekannten riskanten Kombinationen.'],
+    ['🚗 Kein Verkehr', 'Kein Auto, Roller oder Fahrrad, auch nicht am nächsten Morgen, wenn du dich noch komisch fühlst.'],
+    ['🧠 Psyche', 'Bei Psychosen, Schizophrenie oder bipolarer Störung (auch in der Familie) und in akuten Krisen sind Psychedelika ein hohes Risiko.'],
+    ['🚑 Notfall', '112 anrufen und ehrlich sagen, was genommen wurde. Bewusstlose Personen in die stabile Seitenlage legen und nicht allein lassen.']
+  ],
+  lsd:{
+    vorher:['Den ganzen Tag und den nächsten Morgen freihalten.','<b>Set & Setting:</b> gute Stimmung, vertrauter Ort, Menschen, denen du vertraust.','Bei den ersten Malen oder hohen Dosen: eine nüchterne Begleitperson (Tripsitter).','Pappen schwanken stark im Gehalt. Lieber mit einem Teil anfangen und mit dem Ehrlich-Test prüfen, ob es wirklich LSD ist.'],
+    waehrend:['<b>Nicht nachlegen:</b> Das Anfluten kann bis zu 1,5 Std. dauern.','Wasser, Snacks, Decke und eine Playlist vorher bereitlegen.','Schwierige Phase? Raum wechseln, Musik ändern, ruhig atmen und dich daran erinnern: Es ist die Substanz, und es geht vorbei.'],
+    danach:['Ruhiger nächster Tag, gut essen, schlafen.','Erlebnisse hier im Tagebuch aufschreiben, solange sie frisch sind.','Mindestens 1–2 Wochen Pause, vorher ist die Toleranz noch erhöht.'],
+    spezial:[['⚠️ Bitter = ausspucken', 'LSD schmeckt nach nichts. Ist die Pappe <b>bitter</b> oder macht sie die Zunge <b>taub</b>, kann es NBOMe sein. Das ist deutlich gefährlicher, also sofort ausspucken.']]
+  },
+  pilze:{
+    vorher:['Mit einer <b>Feinwaage (0,01 g)</b> abwiegen, nicht schätzen.','Sorten sind unterschiedlich stark. Pilze zermahlen und mischen, damit der Gehalt gleichmäßiger ist.','3–4 Std. vorher nichts Schweres essen, das hilft gegen Übelkeit. Ingwertee hilft auch.','<b>Nie selbst gesammelte Pilze</b> ohne sichere Bestimmung: Verwechslung mit Giftpilzen ist lebensgefährlich.','Set & Setting wie bei LSD: ruhiger Ort, vertraute Menschen.'],
+    waehrend:['Übelkeit am Anfang ist normal und geht meist vorbei.','<b>Nicht nachlegen</b>, wenn nach 45 Min. noch wenig kommt. Die Wirkung kann spät einsetzen.','Natur, Musik und Dunkelheit verstärken die Wirkung. Licht und Gespräche holen dich eher zurück.'],
+    danach:['Erlebnisse aufschreiben (Integration).','Mindestens 1–2 Wochen Pause. Toleranz auch gegenüber LSD und 2C-B.'],
+    spezial:[
+      ['🍋 Lemon Tek', 'Getrocknete Pilze fein mahlen, mit Zitronen- oder Limettensaft bedecken, 15–20 Min. ziehen lassen, dann alles trinken.<br><b>Wirkung:</b> kommt schneller (oft nach 10–20 Min.), wird intensiver und ist kürzer. Bei manchen gibt es weniger Übelkeit.<br><b>Achtung:</b> Fühlt sich stärker an, also etwa ¼–⅓ weniger nehmen als sonst. Der Einstieg kann heftig sein, nicht fürs erste Mal.<br>In der App als Einnahme „Lemon Tek“ wählen, dann passt der Verlauf.'],
+      ['🍵 Pilztee', 'Zermahlene Pilze ca. 10–15 Min. in heißem, nicht kochendem Wasser ziehen lassen, abseihen und trinken. Die Wirkung kommt etwas schneller, und viele vertragen es besser als die ganzen Pilze.']
+    ]
+  },
+  mdma:{
+    vorher:['<b>Testen:</b> Pillen schwanken stark, manche haben über 200 mg.','Pillen teilen und mit einer kleinen Menge anfangen. Faustregel: ca. 1–1,5 mg pro kg Körpergewicht.','Mindestens 6 Wochen, besser 3 Monate Abstand zum letzten Mal.','<b>Nicht mit Antidepressiva:</b> Mit SSRI wirkt es schwächer, mit MAO-Hemmern ist es lebensgefährlich.'],
+    waehrend:['<b>Trinken, aber nicht zu viel:</b> beim Tanzen ca. 500 ml pro Stunde, in Ruhe ca. 250 ml. Zu viel Wasser ist auch gefährlich. Isotonische Getränke sind gut.','Regelmäßig Pausen an der frischen Luft oder im Chill-out machen, Hitze meiden.','Kaugummi hilft gegen Kiefermahlen.','Nachlegen bringt kaum mehr Euphorie, aber mehr Nebenwirkungen und einen schlimmeren Absturz.','<b>Warnzeichen für Überhitzung:</b> Verwirrung, starke Kopfschmerzen, Übelkeit, heiße trockene Haut. Sofort Hilfe holen.'],
+    danach:['Viel schlafen, gut essen (Obst, Gemüse, Eiweiß).','Ein Stimmungstief 1–3 Tage danach ist normal. Plane keine stressigen Tage ein.']
+  },
+  '2cb':{
+    vorher:['<b>Genau dosieren:</b> Wenige mg machen einen großen Unterschied. Beim ersten Mal im unteren Bereich bleiben.','Testen: Unter dem Namen „2C-B“ oder „Tusi“ wird oft etwas ganz anderes verkauft (Tusi ist meist eine Mischung aus Ketamin und MDMA).','Leerer Magen hilft gegen Übelkeit.','Set & Setting beachten.'],
+    waehrend:['<b>Nicht nachlegen:</b> Das Anfluten kann bis zu 1 Std. dauern.','<b>Nicht ziehen:</b> In der Nase ist es sehr schmerzhaft und viel stärker.','Zusammen mit MDMA verstärkt sich alles, auch die Überhitzung.'],
+    danach:['Meist wenig Nachwirkung. Trotzdem ausruhen und aufschreiben.','Toleranz auch gegenüber LSD und Pilzen.']
+  },
+  cannabis:{
+    vorher:['Verdampfen (Vaporizer) schont die Lunge mehr als Rauchen. Ohne Tabak gibt es keine Nikotinsucht.','<b>Edibles:</b> mit 2,5–5 mg THC anfangen.','Bei Angst oder Unruhe lieber weniger oder Sorten mit mehr CBD.'],
+    waehrend:['<b>Bei Edibles 2 Std. warten</b>, bevor du mehr nimmst. Das ist der häufigste Fehler!','Zu viel erwischt? Hinlegen, ruhig atmen, etwas Süßes essen oder trinken. Es geht vorbei.','Mit Alkohol kommt es schneller zu Schwindel und Übelkeit.'],
+    danach:['<b>Nicht fahren:</b> In Deutschland gilt seit 2024 ein THC-Grenzwert, und THC ist lange nachweisbar.','Regelmäßige Pausen halten die Toleranz niedrig.'],
+    spezial:[['🍪 Edibles', 'Gegessen wirkt THC <b>viel stärker und länger</b> als geraucht, oft 6–8 Std. Wähle „geschluckt“ als Einnahme und trag die mg THC ein, dann passt der Verlauf.']]
+  },
+  hhc:{
+    vorher:['Gehalt und Zusätze von HHC-Produkten sind oft unklar. Vapes können Streckmittel enthalten.','<b>HHC-P und HHC-O</b> sind viel stärker als HHC, nicht verwechseln.','In Deutschland ist HHC seit Juni 2024 verboten (NpSG).'],
+    waehrend:['Wenige Züge nehmen, dann 10–15 Min. warten.','Ungewöhnlich stark oder seltsam? Aufhören. Es können synthetische Cannabinoide drin sein.','Edibles: wie bei Cannabis 2 Std. warten, bevor du mehr nimmst.'],
+    danach:['Kopfschmerzen und Benommenheit sind häufiger als bei Cannabis. Viel trinken.','Nicht fahren.']
+  }
+};
+function tipsHtml(key){
+  const t = TIPS[key];
+  const name = PROFILES[key] ? PROFILES[key].name : '';
+  let html = '';
+  if(t){
+    (t.spezial || []).forEach(([h, d]) => { html += `<div class="tip-special"><b>${h}</b><div>${d}</div></div>`; });
+    [['vorher', '🧭', 'Vorher'], ['waehrend', '🌀', 'Während'], ['danach', '🌅', 'Danach']].forEach(([k, ic, lb]) => {
+      if(t[k]) html += `<details class="tips"><summary><span class="ti">${ic}</span>${lb}</summary><ul>${t[k].map(x => `<li>${x}</li>`).join('')}</ul></details>`;
+    });
+  } else if(PROFILES[key]){
+    html += `<div class="alert info">💡 ${esc(PROFILES[key].tip)}</div>`;
+  }
+  return html;
+}
+function generalTipsHtml(){
+  return `<details class="tips"><summary><span class="ti">🛡️</span>Grundregeln für alles</summary><ul class="glist">${TIPS.general.map(([h, d]) => `<li><b>${h}</b><br>${d}</li>`).join('')}</ul></details>`;
+}
+
 /* ---------- Abgeleitete Daten ---------- */
 function substances(){
   const m = new Map();
@@ -835,7 +915,7 @@ function liveView(){
   const phs = phasesFor(now, p.routes[lookupRoute], dz ? LK_FRAC[lookupDose] : null);
   const prof = {p, t:p.routes[lookupRoute]};
   const dur = Math.round((phs[3].to - now) / 6e4);
-  html += `<h3>Nachschlagen</h3>
+  html += `<h3>Nachschlagen &amp; Tipps</h3>
     <div class="card">
       <div class="row">
         <div><label class="f" for="lk_sub" style="margin-top:0">Substanz</label><select id="lk_sub">${keys.map((k, i) => `${i === FAV.length ? '<option disabled>──────</option>' : ''}<option value="${k}" ${k === lookupKey ? 'selected' : ''}>${PROFILES[k].name}</option>`).join('')}</select></div>
@@ -845,9 +925,12 @@ function liveView(){
       <p class="small" style="margin:12px 0 0">Wenn du <b>jetzt</b> nimmst: Die Hauptwirkung dauert ca. <b>${fmtSpan(dur * 6e4)}</b> und ist gegen <b>${fmtWhen(phs[3].to)}</b> vorbei.</p>
       ${timelineHtml([{name:'', ts:now, phs}], now)}${LEGEND}
       ${phaseListHtml(phs, prof, null)}
-      <div class="alert info">💡 ${esc(p.tip)}</div>
     </div>
-    <p class="small muted">Alle Zeiten sind Durchschnittswerte. Dosis, Körpergewicht, Toleranz, Essen und Mischkonsum verändern den Verlauf stark.</p>`;
+    <h3>Safer-Use-Tipps: ${esc(p.name)}</h3>
+    ${TIPS[lookupKey] ? '' : `<div class="alert info">💡 ${esc(p.tip)}</div>`}
+    ${tipsHtml(lookupKey)}
+    ${generalTipsHtml()}
+    <p class="small muted">Alle Zeiten und Mengen sind grobe Durchschnittswerte aus der Drogenhilfe, keine Empfehlung. Dosis, Körpergewicht, Toleranz, Essen und Mischkonsum verändern den Verlauf stark.</p>`;
   return html;
 }
 
@@ -1086,6 +1169,7 @@ function openDetail(id){
     </dl>
     ${alertsHtml(warningsFor(e, entries))}
     ${profileFor(e.substance, e.route) ? `<h3>Wirkungsverlauf</h3><div id="tl_detail" data-id="${e.id}">${verlaufHtml(e, Date.now())}</div>` : ''}
+    ${profileFor(e.substance, e.route) && TIPS[profileFor(e.substance, e.route).key] ? `<h3>Safer-Use-Tipps</h3>${tipsHtml(profileFor(e.substance, e.route).key)}` : ''}
     ${!e.nextDay && Date.now() - e.ts > 12 * 36e5 && Date.now() - e.ts < 4 * DAY ? '<div class="alert info">💡 Wie ging es dir am nächsten Tag? Tippe auf „Bearbeiten“, um es zu ergänzen.</div>' : ''}
     <button class="btn" data-act="edit" data-id="${e.id}">Bearbeiten</button>
     <button class="btn danger" data-act="del" data-id="${e.id}">Löschen</button>`);
