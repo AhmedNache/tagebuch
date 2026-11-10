@@ -160,6 +160,8 @@ a{color:var(--accent)}
 .tl-axis span{position:absolute;top:3px;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
 .tl-now{position:absolute;top:14px;bottom:16px;width:2px;margin-left:-1px;background:var(--danger);z-index:2;border-radius:1px}
 .tl-now span{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:var(--danger);letter-spacing:.04em;white-space:nowrap}
+.tl-now.l span{left:0;transform:none}
+.tl-now.r span{left:auto;right:0;transform:none}
 .legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted);margin:2px 0 4px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .status .ph{font-size:24px;font-weight:750;margin:2px 0 4px;display:flex;align-items:center;gap:8px}
@@ -177,6 +179,17 @@ a{color:var(--accent)}
 .pl .box{padding:6px 10px;border-radius:10px}
 .pl>li.cur .box{background:var(--surface2);box-shadow:0 0 0 2px var(--accent) inset}
 .pl>li.past{opacity:.5}
+.dose{margin:10px 0 8px}
+.dose-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;margin-bottom:8px}
+.dose-lv{color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;text-shadow:0 1px 1px rgba(0,0,0,.25)}
+.dose-track{position:relative}
+.dose-bar{display:flex;gap:2px;height:10px;border-radius:5px;overflow:hidden}
+.dose-bar span{flex:1}
+.dose-mark{position:absolute;top:-5px;width:4px;height:20px;margin-left:-2px;background:var(--text);border-radius:2px;box-shadow:0 0 0 2px var(--surface)}
+.dose-labels{display:flex;font-size:10px;color:var(--muted);margin-top:5px}
+.dose-labels span{flex:1;text-align:center}
+.dose-labels span.on{color:var(--text);font-weight:700}
+.seg button .small{font-size:11px}
 .nowtag{font-size:10px;font-weight:800;color:var(--danger);letter-spacing:.05em;margin-left:4px}
 ol.steps{padding-left:20px;margin:6px 0}
 ol.steps li{margin:4px 0}
@@ -209,7 +222,7 @@ ol.steps li{margin:4px 0}
 <script>
 'use strict';
 /* ---------- Grunddaten ---------- */
-const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.1';
+const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.2';
 const RATINGS = [null,
   {e:'😖', t:'sehr schlecht', c:'#e5484d'},
   {e:'🙁', t:'schlecht',      c:'#f76b15'},
@@ -217,9 +230,9 @@ const RATINGS = [null,
   {e:'🙂', t:'gut',           c:'#46a758'},
   {e:'😄', t:'sehr gut',      c:'#1f9d6b'}];
 const MOODS = [null,'😞','😕','😐','🙂','😊'];
-const UNITS = ['mg','g','µg','ml','Stück','Teile','Lines','Züge','Gläser','Joints','Flaschen'];
+const UNITS = ['mg','g','µg','g (frisch)','ml','Stück','Teile','Lines','Züge','Gläser','Joints','Flaschen'];
 const ROUTES = ['geschluckt','geraucht','verdampft','gezogen (Nase)','getrunken','unter die Zunge','gespritzt','andere'];
-const SUGGEST = ['Alkohol','Cannabis','MDMA','Kokain','Speed','Ketamin','LSD','Pilze','GHB/GBL','Nikotin','Koffein'];
+const SUGGEST = ['LSD','Pilze','MDMA','2C-B','Cannabis','HHC','Alkohol','Kokain','Speed','Ketamin','GHB/GBL','Nikotin','Koffein'];
 
 /* Bekannte Substanzen (für Safer-Use-Hinweise) */
 const SUBST = {
@@ -232,7 +245,9 @@ const SUBST = {
   ketamin:['ketamin','keta','ket','k','special k'],
   ghb:['ghb','gbl','ghb/gbl','g','liquid ecstasy','bdo','1,4-butandiol'],
   lsd:['lsd','acid','pappe','pappen','1p-lsd','1cp-lsd'],
-  pilze:['pilze','psilocybin','shrooms','magic mushrooms','trüffel','zauberpilze'],
+  pilze:['pilze','psilocybin','shrooms','shroom','mushrooms','magic mushrooms','magic mushroom','psilos','trüffel','zauberpilze'],
+  '2cb':['2c-b','2cb','2 c-b','nexus','bees'],
+  hhc:['hhc','hhc vape','hhc-vape'],
   benzos:['benzo','benzos','benzodiazepin','benzodiazepine','diazepam','valium','alprazolam','xanax','lorazepam','tavor','clonazepam','rivotril','etizolam','bromazolam'],
   opioide:['opioid','opioide','opiat','opiate','heroin','tilidin','oxycodon','oxy','fentanyl','morphin','codein','methadon','tramadol','lean'],
   tramadol:['tramadol'],
@@ -271,7 +286,16 @@ const COMBOS = [
   ['cannabis','pilze','warn','Vorsicht: kann die Wirkung stark verstärken (Angst, Kontrollverlust).'],
   ['tramadol','ssri','danger','Gefährlich: Serotonin-Syndrom und Krampfanfälle möglich.'],
   ['dxm','ssri','danger','Gefährlich: Serotonin-Syndrom möglich.'],
-  ['dxm','alkohol','warn','Vorsicht: verstärkte Dämpfung.']
+  ['dxm','alkohol','warn','Vorsicht: verstärkte Dämpfung.'],
+  ['2cb','lithium','danger','Gefährlich: Krampfanfälle und Psychosen beschrieben.'],
+  ['2cb','maoi','danger','Gefährlich: unvorhersehbar starke Wirkung.'],
+  ['2cb','mdma','warn','Vorsicht: Wirkungen verstärken sich, Überhitzung und Überforderung möglich.'],
+  ['2cb','cannabis','warn','Vorsicht: kann die Wirkung stark verstärken (Angst, Kontrollverlust).'],
+  ['hhc','lsd','warn','Vorsicht: kann die Wirkung stark verstärken (Angst, Kontrollverlust).'],
+  ['hhc','pilze','warn','Vorsicht: kann die Wirkung stark verstärken (Angst, Kontrollverlust).'],
+  ['hhc','2cb','warn','Vorsicht: kann die Wirkung stark verstärken (Angst, Kontrollverlust).'],
+  ['hhc','alkohol','warn','Vorsicht: Schwindel, Übelkeit und Kreislaufprobleme werden wahrscheinlicher.'],
+  ['cannabis','alkohol','warn','Vorsicht: Schwindel, Übelkeit und Kreislaufprobleme werden wahrscheinlicher.']
 ];
 
 /* ---------- Speicher ---------- */
@@ -351,8 +375,21 @@ function warningsFor(entry, all){
       out.push({lvl:'danger', txt:`Letzte Dosis G vor ${fmtNum(h * 60)} Min. Bei GHB/GBL liegen Wirkung und Überdosis sehr nah beieinander: mindestens 2 Std. Abstand, genau abmessen, nie mit Alkohol.`});
     if(keys.includes('mdma') && d >= 1 && d < 42)
       out.push({lvl:'warn', txt:`Letztes MDMA vor ${Math.round(d)} Tagen. Safer-Use-Empfehlung: mindestens 6 Wochen, besser 3 Monate Pause, damit der Körper sich erholen kann.`});
-    if((keys.includes('lsd') || keys.includes('pilze')) && d >= 0.5 && d < 7)
-      out.push({lvl:'info', txt:`Letztes Mal vor ${Math.round(d)} Tag(en): Die Toleranz ist noch erhöht, die Wirkung fällt schwächer aus. Nicht einfach höher dosieren.`});
+  }
+  // Toleranz bei Psychedelika (auch untereinander: LSD, Pilze, 2C-B)
+  const PSY = ['lsd', 'pilze', '2cb'];
+  if(keys.some(k => PSY.includes(k))){
+    const pp = others.filter(e => e.ts < t && t - e.ts >= 12 * 36e5 && t - e.ts < 7 * DAY && keysFor(e.substance).some(k => PSY.includes(k))).sort((a, b) => b.ts - a.ts)[0];
+    if(pp) out.push({lvl:'info', txt:`Letzter Trip (${esc(pp.substance)}) vor ${Math.round((t - pp.ts) / DAY)} Tag(en): Die Toleranz ist noch erhöht, auch zwischen LSD, Pilzen und 2C-B. Die Wirkung fällt schwächer aus. Nicht einfach höher dosieren.`});
+  }
+  // Dosis
+  const di = doseInfo(entry.amount, entry.unit, profileFor(entry.substance, entry.route));
+  if(di && di.level >= 3){
+    const k = profileFor(entry.substance, entry.route).key;
+    const risk = k === 'mdma' ? 'Überhitzung, Herz-Kreislauf-Belastung und ein stärkerer Absturz danach'
+      : (k === 'cannabis' || k === 'hhc') ? 'Herzrasen, Angst, Übelkeit und Kreislaufprobleme'
+      : 'eine sehr intensive, evtl. überwältigende Erfahrung. Am besten mit nüchterner Begleitperson';
+    out.push({lvl: di.level === 4 ? 'danger' : 'warn', txt:`${di.level === 4 ? 'Sehr hohe' : 'Hohe'} Dosis ${esc(entry.substance)} (${fmtDose(di.v)} ${di.u}): Rechne mit ${risk}.`});
   }
   // Häufigkeit in den letzten 7 Tagen
   const days = new Set(others.filter(e => sameSubstance(e, entry) && e.ts <= t && e.ts > t - 7 * DAY).map(e => dayKey(e.ts)));
@@ -400,7 +437,13 @@ const PROFILES = {
   lsd:{name:'LSD', def:'oral', routes:{oral:{onset:[20,60],comeup:[45,90],peak:[180,300],offset:[180,300],after:[360,1440]}},
     fx:{onset:['noch nichts – Geduld'], comeup:['Kribbeln, Gänsehaut','Nervosität','erste Muster, Farben intensiver'], peak:['starke visuelle Effekte','verändertes Denken und Zeitgefühl','intensive Gefühle (schön oder schwierig)'], offset:['Effekte werden schwächer','nachdenkliche Stimmung','Einschlafen fällt schwer'], after:['Erschöpfung','Nachglühen oder leichte Verwirrung']},
     tip:'Ruhiger Ort, vertraute Person, den ganzen Tag einplanen. In schwierigen Phasen: Raum wechseln, Musik ändern und daran denken, dass es vorbeigeht.'},
-  pilze:{name:'Pilze (Psilocybin)', def:'oral', routes:{oral:{onset:[20,40],comeup:[15,30],peak:[60,120],offset:[60,120],after:[120,360]}},
+  '2cb':{name:'2C-B', def:'oral', routes:{oral:{onset:[20,40],comeup:[15,30],peak:[90,150],offset:[60,120],after:[120,360]}},
+    fx:{onset:['noch nichts – Geduld'], comeup:['Kribbeln, Körperwärme','evtl. Übelkeit','leichte Nervosität'], peak:['Farben und Muster intensiver','Euphorie, starkes Körpergefühl','Musik und Berührung intensiver','bei hoher Dosis: starke Visuals, Verwirrung'], offset:['sanftes Ausklingen','der Kopf wird klarer'], after:['leichte Müdigkeit','meist wenig Nachwirkung']},
+    tip:'Sehr steile Dosis-Kurve: Wenige mg machen einen großen Unterschied. Der Gehalt von Pillen und Pulver schwankt stark, also mit wenig anfangen und nicht nachlegen.'},
+  hhc:{name:'HHC', def:'smoked', routes:{smoked:{onset:[1,5],comeup:[5,15],peak:[30,60],offset:[60,120],after:[120,360]}, oral:{onset:[30,120],comeup:[30,60],peak:[120,240],offset:[120,300],after:[360,720]}},
+    fx:{onset:['erstes Kribbeln'], comeup:['Entspannung','Herzklopfen möglich','trockener Mund'], peak:['High, ähnlich wie Cannabis','Sinne intensiver','Zeitgefühl verändert','bei viel: Unruhe, Angst, Schwindel'], offset:['ruhiger werden','Müdigkeit'], after:['Benommenheit','evtl. Kopfschmerzen']},
+    tip:'Der Gehalt von HHC-Produkten schwankt stark, und es gibt kaum Forschung dazu. HHC-P und HHC-O sind viel stärker, also nicht verwechseln. In Deutschland ist HHC seit 2024 verboten (NpSG).'},
+  pilze:{name:'Pilze (Magic Mushrooms)', def:'oral', routes:{oral:{onset:[20,40],comeup:[15,30],peak:[60,120],offset:[60,120],after:[120,360]}},
     fx:{onset:['evtl. Übelkeit','Gähnen'], comeup:['Kribbeln, Lachen','Farben intensiver'], peak:['Muster und Visuals','starke Gefühle','verändertes Zeitgefühl'], offset:['sanftes Ausklingen','nachdenklich'], after:['Müdigkeit','Nachglühen']},
     tip:'Übelkeit am Anfang ist normal. Nicht nachlegen, wenn nach 1 Std. noch wenig kommt.'},
   benzos:{name:'Benzos', def:'oral', routes:{oral:{onset:[15,45],comeup:[15,30],peak:[60,180],offset:[240,600],after:[360,1440]}},
@@ -426,13 +469,85 @@ function profileFor(substance, route){
   const p = PROFILES[k], rk = routeKey(route), use = p.routes[rk] ? rk : p.def;
   return {key:k, p, route:use, assumed:!p.routes[rk], t:p.routes[use]};
 }
-function phasesFor(ts, t){
+/* frac: 0 = leichte Dosis (kurz), 0,5 = Durchschnitt, 1 = sehr stark (lang), bis 1,25 bei extremen Mengen */
+function phasesFor(ts, t, frac){
+  const f = frac == null ? 0.5 : frac;
   let a = ts, lo = ts, hi = ts;
   return PHASES.map(ph => {
-    const [mn, mx] = t[ph.k], from = a;
-    a += (mn + mx) / 2 * 6e4; lo += mn * 6e4; hi += mx * 6e4;
-    return {...ph, from, to:a, endLo:lo, endHi:hi, range:[mn, mx]};
+    const [mn, mx] = t[ph.k], from = a, ff = ph.k === 'onset' ? 0.5 : f;
+    a += (mn + (mx - mn) * ff) * 6e4; lo += mn * 6e4; hi += mx * Math.max(1, ff) * 6e4;
+    return {...ph, from, to:a, endLo:lo, endHi:hi, range:[mn, Math.round(mx * Math.max(1, ff))]};
   });
+}
+
+/* ---------- Dosis ---------- */
+/* lv = ab welcher Menge: [Schwelle, leicht, normal, stark, sehr stark] – grobe Richtwerte aus der Drogenhilfe */
+const DOSE_NAMES = ['Schwelle', 'leicht', 'normal', 'stark', 'sehr stark'];
+const DOSE_COLORS = ['#9ba1a6', '#46a758', '#2f9c8f', '#f5a524', '#e5484d'];
+const DOSES = {
+  lsd:{oral:{unit:'µg', lv:[15,25,75,150,300], pieces:'Pappen enthalten meist 50–200 µg, der Gehalt schwankt stark.'}},
+  pilze:{oral:{unit:'g', lv:[0.2,0.5,1,2.5,5], note:'Gilt für getrocknete Pilze (Psilocybe cubensis). Frische Pilze wiegen ca. 10× so viel, dafür gibt es die Einheit „g (frisch)“.'}},
+  mdma:{oral:{unit:'mg', lv:[30,40,75,140,180], note:'Faustregel aus der Drogenhilfe: ca. 1–1,5 mg pro kg Körpergewicht.', pieces:'Pillen enthalten oft 100–250 mg MDMA, der Gehalt schwankt stark. Drug-Checking nutzen, wo es geht.'}},
+  '2cb':{oral:{unit:'mg', lv:[3,5,15,25,35], note:'Sehr steile Dosis-Kurve: Wenige mg machen einen großen Unterschied.', pieces:'Der Gehalt von 2C-B-Pillen schwankt stark (oft 5–30 mg).'}},
+  cannabis:{smoked:{unit:'g', lv:[0.02,0.05,0.15,0.4,0.8], puffs:[1,2,3,6,10], note:'Grobe Werte für Gras mit ca. 15 % THC. 1 Joint wird mit ca. 0,35 g gerechnet.'}, oral:{unit:'mg', lv:[1,2.5,5,15,30], note:'Gemeint sind mg THC (steht auf der Packung).'}},
+  hhc:{smoked:{unit:'g', lv:[0.02,0.05,0.15,0.4,0.8], puffs:[1,2,3,6,10], note:'Grobe Werte, der Gehalt von HHC-Produkten schwankt stark. Beim Vape am besten „Züge“ eintragen.'}, oral:{unit:'mg', lv:[3,5,10,25,40], note:'Gemeint sind mg HHC (laut Packung).'}}
+};
+const MASS = {'µg':1e-6, 'mg':1e-3, 'g':1, 'g (frisch)':0.1};
+const fmtDose = v => v.toLocaleString('de-DE', {maximumFractionDigits: v < 1 ? 2 : 1});
+function parseAmount(s){
+  s = String(s || '').trim().replace(/,/g, '.');
+  const f = /^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/.exec(s);
+  if(f) return +f[2] ? f[1] / f[2] : null;
+  const v = parseFloat(s);
+  return isFinite(v) && v > 0 ? v : null;
+}
+function doseInfo(amount, unit, prof){
+  if(!prof) return null;
+  const d = DOSES[prof.key] && DOSES[prof.key][prof.route];
+  if(!d) return null;
+  const v0 = parseAmount(amount);
+  if(v0 === null) return {d, none:true};
+  let v = null, lv = d.lv, u = d.unit;
+  if(unit === 'Züge' && d.puffs){ v = v0; lv = d.puffs; u = 'Züge'; }
+  else if(unit === 'Joints' && d.unit === 'g') v = v0 * 0.35;
+  else if(MASS[unit] && MASS[d.unit]) v = v0 * MASS[unit] / MASS[d.unit];
+  if(v === null) return {d, none:true, unknownUnit:true, unit};
+  let level = -1;
+  for(let i = 0; i < 5; i++) if(v >= lv[i]) level = i;
+  const lo = lv[1], hi = lv[4];
+  const frac = v > hi ? 1 + Math.min(0.25, (v - hi) / hi * 0.5) : Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
+  return {d, v, u, lv, level, frac};
+}
+function doseRange(lv, i, u){
+  return i < 4 ? `${fmtDose(lv[i])}–${fmtDose(lv[i + 1])} ${u}` : `ab ${fmtDose(lv[4])} ${u}`;
+}
+function doseScaleHtml(di){
+  if(!di) return '';
+  if(di.none){
+    if(!di.unknownUnit) return `<div class="small muted dose">Trag die Menge in ${di.d.unit} ein, dann siehst du, wie stark die Dosis ist, und die Dauer wird genauer.</div>`;
+    const pieces = ['Stück', 'Teile'].includes(di.unit) && di.d.pieces;
+    return `<div class="alert info">${pieces ? esc(di.d.pieces) + ' ' : ''}Für die Dosis-Einschätzung die Menge in ${di.d.unit} angeben.</div>`;
+  }
+  const {v, u, lv, level} = di;
+  let pos = 0;
+  if(level >= 0){
+    const inSeg = level < 4 ? (v - lv[level]) / (lv[level + 1] - lv[level]) : Math.min(1, (v - lv[4]) / lv[4]);
+    pos = level * 20 + Math.max(0, Math.min(1, inSeg)) * 20;
+  }
+  const name = level >= 0 ? DOSE_NAMES[level] : 'sehr wenig';
+  const color = level >= 0 ? DOSE_COLORS[level] : DOSE_COLORS[0];
+  return `<div class="dose">
+    <div class="dose-head"><span>Deine Menge: <b>${fmtDose(v)} ${u}</b></span><span class="dose-lv" style="background:${color}">${name}</span></div>
+    <div class="dose-track"><div class="dose-bar">${DOSE_COLORS.map((c, i) => `<span style="background:${c};opacity:${i === level ? 1 : .35}"></span>`).join('')}</div><div class="dose-mark" style="left:${pos}%"></div></div>
+    <div class="dose-labels">${DOSE_NAMES.map((n, i) => `<span class="${i === level ? 'on' : ''}">${n}</span>`).join('')}</div>
+    <div class="small muted" style="margin-top:4px">${level >= 0 ? `${name} = ${doseRange(lv, level, u)}` : `unter der Schwelle (${fmtDose(lv[0])} ${u})`}${di.d.note ? ' · ' + esc(di.d.note) : ''}</div>
+  </div>`;
+}
+function timingFor(e){
+  const prof = profileFor(e.substance, e.route);
+  if(!prof) return null;
+  const di = doseInfo(e.amount, e.unit, prof);
+  return {prof, di, phs:phasesFor(e.ts, prof.t, di && !di.none ? di.frac : null)};
 }
 const fmtH = m => fmtNum(Math.round(m / 6) / 10);
 function fmtRange([a, b]){
@@ -473,7 +588,8 @@ function timelineHtml(rows, now){
     const p = pct(t);
     if(t >= start && p >= 6 && p <= 94) ticks += `<span style="left:${p}%">${fmtTime(t)}</span>`;
   }
-  const nowLine = now && now >= start && now <= end ? `<div class="tl-now" style="left:${pct(now)}%"><span>Jetzt</span></div>` : '';
+  const np = now ? pct(now) : 0;
+  const nowLine = now && now >= start && now <= end ? `<div class="tl-now ${np < 8 ? 'l' : np > 92 ? 'r' : ''}" style="left:${np}%"><span>Jetzt</span></div>` : '';
   return `<div class="tl">${bars}<div class="tl-axis">${ticks}</div>${nowLine}</div>`;
 }
 
@@ -505,10 +621,15 @@ function phaseListHtml(phs, prof, now){
       <ul>${(prof.p.fx[ph.k] || [ph.desc]).map(f => `<li>${esc(f)}</li>`).join('')}</ul></div></li>`).join('')}</ol>`;
 }
 
-function verlaufHtml(e, prof, now){
-  const phs = phasesFor(e.ts, prof.t);
+function verlaufHtml(e, now){
+  const tm = timingFor(e);
+  if(!tm) return '';
+  const {prof, di, phs} = tm;
   const name = esc(e.substance);
+  const doseNote = !di ? '' : di.none ? '<div class="small muted">Ohne Mengenangabe: Durchschnittswerte.</div>'
+    : `<div class="small muted">Dauer berechnet für deine Menge (${di.level >= 0 ? DOSE_NAMES[di.level] : 'sehr wenig'}).</div>`;
   return `${prof.assumed ? `<div class="small muted">Einnahme nicht angegeben, angenommen: ${ROUTE_NAMES[prof.route]}</div>` : ''}
+    ${doseScaleHtml(di)}${doseNote}
     ${timelineHtml([{name:'', ts:e.ts, phs}], now)}${LEGEND}
     ${statusHtml(name, e.ts, prof, phs, now)}
     ${phaseListHtml(phs, prof, now)}
@@ -531,7 +652,7 @@ const sorted = () => [...entries].sort((a, b) => b.ts - a.ts);
 
 /* ---------- Zustand ---------- */
 let view = 'list', search = '', subFilter = '', calMonth = new Date(), calSel = dayKey(Date.now()), statRange = 30, form = null;
-let lookupKey = 'mdma', lookupRoute = 'oral';
+let lookupKey = 'lsd', lookupRoute = 'oral', lookupDose = 2;
 calMonth.setDate(1);
 
 /* ---------- Rendering ---------- */
@@ -589,9 +710,9 @@ function entryCard(e){
   const meta = [amount, esc(e.route || '')].filter(Boolean).join(' · ');
   const note = e.note || e.effects || '';
   let live = '';
-  const prof = profileFor(e.substance, e.route);
-  if(prof && e.ts <= Date.now() && Date.now() - e.ts < 4 * DAY){
-    const phs = phasesFor(e.ts, prof.t), i = phaseAt(phs, Date.now());
+  const tm = e.ts <= Date.now() && Date.now() - e.ts < 4 * DAY ? timingFor(e) : null;
+  if(tm){
+    const phs = tm.phs, i = phaseAt(phs, Date.now());
     if(i >= 0) live = `<span class="flag live"><i class="pdot ph-${phs[i].k}"></i>${phs[i].label}</span>`;
   }
   return `<button class="entry" data-act="open" data-id="${e.id}">
@@ -603,9 +724,8 @@ function entryCard(e){
 function liveView(){
   const now = Date.now();
   const all = entries.filter(e => e.ts <= now + 12 * 36e5 && e.ts > now - 4 * DAY)
-    .map(e => ({e, prof:profileFor(e.substance, e.route)}))
+    .map(e => ({e, ...timingFor(e)}))
     .filter(x => x.prof)
-    .map(x => ({...x, phs:phasesFor(x.e.ts, x.prof.t)}))
     .filter(x => now < x.phs[4].to)
     .sort((a, b) => a.e.ts - b.e.ts);
   const main = all.filter(x => now < x.phs[3].to + 2 * 36e5);
@@ -624,20 +744,24 @@ function liveView(){
   if(!main.length && !after.length) html += `<div class="card" style="text-align:center"><div style="font-size:36px">🌙</div><b>Gerade wirkt laut Tagebuch nichts.</b><div class="small muted">Wenn du einen Eintrag anlegst, siehst du hier live, in welcher Phase du bist und wann es vorbei ist.</div></div>`;
 
   // Nachschlagen
-  const keys = Object.keys(PROFILES);
+  const FAV = ['lsd', 'pilze', 'mdma', '2cb', 'cannabis', 'hhc'];
+  const keys = [...FAV, ...Object.keys(PROFILES).filter(k => !FAV.includes(k))];
   if(!PROFILES[lookupKey]) lookupKey = keys[0];
   const p = PROFILES[lookupKey];
   if(!p.routes[lookupRoute]) lookupRoute = p.def;
-  const phs = phasesFor(now, p.routes[lookupRoute]);
+  const dz = DOSES[lookupKey] && DOSES[lookupKey][lookupRoute];
+  const LK_FRAC = {1:0.1, 2:0.45, 3:0.85};
+  const phs = phasesFor(now, p.routes[lookupRoute], dz ? LK_FRAC[lookupDose] : null);
   const prof = {p, t:p.routes[lookupRoute]};
-  const total = [phs[3].endLo - now, phs[3].endHi - now].map(x => Math.round(x / 6e4));
+  const dur = Math.round((phs[3].to - now) / 6e4);
   html += `<h3>Nachschlagen</h3>
     <div class="card">
       <div class="row">
-        <div><label class="f" for="lk_sub" style="margin-top:0">Substanz</label><select id="lk_sub">${keys.map(k => `<option value="${k}" ${k === lookupKey ? 'selected' : ''}>${PROFILES[k].name}</option>`).join('')}</select></div>
+        <div><label class="f" for="lk_sub" style="margin-top:0">Substanz</label><select id="lk_sub">${keys.map((k, i) => `${i === FAV.length ? '<option disabled>──────</option>' : ''}<option value="${k}" ${k === lookupKey ? 'selected' : ''}>${PROFILES[k].name}</option>`).join('')}</select></div>
         <div><label class="f" for="lk_route" style="margin-top:0">Einnahme</label><select id="lk_route">${Object.keys(p.routes).map(r => `<option value="${r}" ${r === lookupRoute ? 'selected' : ''}>${ROUTE_NAMES[r]}</option>`).join('')}</select></div>
       </div>
-      <p class="small" style="margin:12px 0 0">Wenn du <b>jetzt</b> nimmst: Die Hauptwirkung dauert ca. <b>${fmtRange(total)}</b></p>
+      ${dz ? `<label class="f">Menge</label><div class="seg" style="margin:0">${[1, 2, 3].map(l => `<button class="${lookupDose === l ? 'on' : ''}" data-act="lkdose" data-l="${l}">${DOSE_NAMES[l]}<br><span class="small muted">${doseRange(dz.lv, l, dz.unit)}</span></button>`).join('')}</div>` : ''}
+      <p class="small" style="margin:12px 0 0">Wenn du <b>jetzt</b> nimmst: Die Hauptwirkung dauert ca. <b>${fmtSpan(dur * 6e4)}</b> und ist gegen <b>${fmtWhen(phs[3].to)}</b> vorbei.</p>
       ${timelineHtml([{name:'', ts:now, phs}], now)}${LEGEND}
       ${phaseListHtml(phs, prof, null)}
       <div class="alert info">💡 ${esc(p.tip)}</div>
@@ -829,10 +953,11 @@ function updateFormWarnings(){
   const e = readForm();
   e.id = form.id || '__new__';
   $('#f_warn').innerHTML = alertsHtml(warningsFor(e, entries));
-  const prof = profileFor(e.substance, e.route);
-  if(prof){
-    const phs = phasesFor(e.ts, prof.t);
+  const tm = timingFor(e);
+  if(tm){
+    const {prof, di, phs} = tm;
     $('#f_tl').innerHTML = `<div class="card" style="margin-top:12px"><div class="small"><b>⏱ Erwarteter Verlauf</b>${prof.assumed ? ` <span class="muted">(angenommen: ${ROUTE_NAMES[prof.route]})</span>` : ''}</div>
+      ${doseScaleHtml(di)}
       ${timelineHtml([{name:'', ts:e.ts, phs}], Date.now())}<div class="small">${summaryText(phs)}</div></div>`;
   } else $('#f_tl').innerHTML = '';
 }
@@ -870,7 +995,7 @@ function openDetail(id){
       ${row('Nächster Tag', esc(e.nextDay))}
     </dl>
     ${alertsHtml(warningsFor(e, entries))}
-    ${profileFor(e.substance, e.route) ? `<h3>Wirkungsverlauf</h3><div id="tl_detail" data-id="${e.id}">${verlaufHtml(e, profileFor(e.substance, e.route), Date.now())}</div>` : ''}
+    ${profileFor(e.substance, e.route) ? `<h3>Wirkungsverlauf</h3><div id="tl_detail" data-id="${e.id}">${verlaufHtml(e, Date.now())}</div>` : ''}
     ${!e.nextDay && Date.now() - e.ts > 12 * 36e5 && Date.now() - e.ts < 4 * DAY ? '<div class="alert info">💡 Wie ging es dir am nächsten Tag? Tippe auf „Bearbeiten“, um es zu ergänzen.</div>' : ''}
     <button class="btn" data-act="edit" data-id="${e.id}">Bearbeiten</button>
     <button class="btn danger" data-act="del" data-id="${e.id}">Löschen</button>`);
@@ -984,6 +1109,7 @@ document.addEventListener('click', async ev => {
     case 'calnext': calMonth.setMonth(calMonth.getMonth() + 1); render(); break;
     case 'calday': calSel = t.dataset.day; render(); break;
     case 'range': statRange = +t.dataset.range; render(); break;
+    case 'lkdose': lookupDose = +t.dataset.l; render(); break;
     case 'export': exportBackup(); break;
     case 'import': $('#importFile').click(); break;
     case 'setpin': openPinForm(); break;
@@ -1004,7 +1130,7 @@ $('#sheet').addEventListener('click', ev => { if(ev.target.id === 'sheet') close
 document.addEventListener('input', ev => {
   if(ev.target.id === 'search'){ search = ev.target.value; renderListItems(); }
   if(ev.target.id === 'f_unit') form && (form.unitTouched = true);
-  if(['f_sub', 'f_ts', 'f_route'].includes(ev.target.id)) updateFormWarnings();
+  if(['f_sub', 'f_ts', 'f_route', 'f_amt', 'f_unit'].includes(ev.target.id)) updateFormWarnings();
 });
 document.addEventListener('change', ev => {
   if(ev.target.id === 'lk_sub'){ lookupKey = ev.target.value; lookupRoute = PROFILES[lookupKey].def; render(); }
@@ -1015,16 +1141,20 @@ setInterval(() => {
   if(document.hidden || !$('#lock').hidden) return;
   const det = $('#tl_detail');
   if(!$('#sheet').hidden){
-    if(det){ const e = entries.find(x => x.id === det.dataset.id), p = e && profileFor(e.substance, e.route); if(p) det.innerHTML = verlaufHtml(e, p, Date.now()); }
+    if(det){ const e = entries.find(x => x.id === det.dataset.id); if(e) det.innerHTML = verlaufHtml(e, Date.now()); }
     return;
   }
   if(view === 'live') render();
   else if(view === 'list') renderListItems();
 }, 30000);
 document.addEventListener('change', ev => {
-  if(ev.target.id === 'f_sub' && form && !form.unitTouched){
-    const s = substances().find(x => x.key === norm(ev.target.value));
+  if(['f_sub', 'f_route'].includes(ev.target.id) && form && !form.unitTouched){
+    const s = substances().find(x => x.key === norm($('#f_sub').value));
+    const pr = profileFor($('#f_sub').value, $('#f_route').value);
+    const dz = pr && DOSES[pr.key] && DOSES[pr.key][pr.route];
     if(s && s.unit) $('#f_unit').value = s.unit;
+    else if(dz) $('#f_unit').value = dz.unit;
+    updateFormWarnings();
   }
   if(ev.target.id === 'f_unit' && form) form.unitTouched = true;
   if(ev.target.id === 'f_ts') updateFormWarnings();
