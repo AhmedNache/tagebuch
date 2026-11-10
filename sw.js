@@ -1,6 +1,6 @@
 // Service Worker: macht die App offline nutzbar.
 // Zuerst Netz (damit Updates sofort ankommen), sonst gespeicherte Version.
-const CACHE = 'tagebuch-v3';
+const CACHE = 'tagebuch-v4';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

@@ -190,6 +190,12 @@ a{color:var(--accent)}
 .dose-labels span{flex:1;text-align:center}
 .dose-labels span.on{color:var(--text);font-weight:700}
 .seg button .small{font-size:11px}
+.toggle{display:flex;align-items:center;gap:12px;margin:12px 0 4px;cursor:pointer}
+.toggle>span{flex:1}
+.toggle input{-webkit-appearance:none;appearance:none;flex:none;width:51px;height:31px;min-height:0;padding:0;border-radius:16px;background:var(--surface2);border:1px solid var(--border);position:relative;transition:background .2s;cursor:pointer}
+.toggle input::after{content:'';position:absolute;top:2px;left:2px;width:25px;height:25px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.toggle input:checked{background:#34c759;border-color:#34c759}
+.toggle input:checked::after{transform:translateX(20px)}
 .nowtag{font-size:10px;font-weight:800;color:var(--danger);letter-spacing:.05em;margin-left:4px}
 ol.steps{padding-left:20px;margin:6px 0}
 ol.steps li{margin:4px 0}
@@ -222,7 +228,7 @@ ol.steps li{margin:4px 0}
 <script>
 'use strict';
 /* ---------- Grunddaten ---------- */
-const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.2';
+const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.3';
 const RATINGS = [null,
   {e:'😖', t:'sehr schlecht', c:'#e5484d'},
   {e:'🙁', t:'schlecht',      c:'#f76b15'},
@@ -858,7 +864,9 @@ function moreView(){
   <h3>Backup</h3>
   <div class="card"><span class="small muted">Deine Einträge liegen nur auf diesem Handy. Speichere regelmäßig ein Backup, z. B. in der Dateien-App oder iCloud Drive.</span>
     <p class="small" style="margin:8px 0 0">${entries.length} Einträge · Letztes Backup: ${settings.lastBackup ? fmtDate(settings.lastBackup) : 'noch keins'}</p>
-    <button class="btn primary" data-act="export">Backup speichern</button>
+    <label class="toggle"><span><b>Nach jedem Eintrag sichern</b><br><span class="small muted">Nach dem Speichern oder Löschen öffnet sich das Teilen-Menü. „In Dateien sichern“ → iCloud Drive → „Sichern“ (bei Nachfrage „Ersetzen“).</span></span>
+      <input type="checkbox" id="autoBackup" ${settings.autoBackup === false ? '' : 'checked'}></label>
+    <button class="btn primary" data-act="export">Backup jetzt speichern</button>
     <button class="btn" data-act="import">Backup laden</button></div>
 
   <h3>App installieren</h3>
@@ -974,6 +982,12 @@ function saveForm(){
   render();
   const ws = warningsFor(e, entries).filter(w => w.lvl !== 'info');
   toast(ws.length ? 'Gespeichert – bitte Hinweis beachten' : 'Gespeichert');
+  autoBackup();
+}
+/* Backup direkt nach dem Speichern (muss im selben Tipp passieren, sonst blockiert iOS das Teilen-Menü) */
+function autoBackup(){
+  if(settings.autoBackup === false) return;
+  exportBackup(true);
 }
 
 function openDetail(id){
@@ -1042,11 +1056,11 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ---------- Backup ---------- */
-async function exportBackup(){
+async function exportBackup(auto){
   const data = JSON.stringify({app:'konsum-tagebuch', version:1, exported:new Date().toISOString(), entries}, null, 1);
-  const name = `tagebuch-backup-${dayKey(Date.now())}.json`;
+  const name = auto ? 'tagebuch-backup.json' : `tagebuch-backup-${dayKey(Date.now())}.json`;
   const file = new File([data], name, {type:'application/json'});
-  const done = () => { settings.lastBackup = Date.now(); saveSettings(); render(); toast('Backup erstellt'); };
+  const done = () => { settings.lastBackup = Date.now(); saveSettings(); render(); toast(auto ? 'Gespeichert + Backup erstellt' : 'Backup erstellt'); };
   if(navigator.canShare && navigator.canShare({files:[file]})){
     try{ await navigator.share({files:[file], title:name}); done(); return; }
     catch(err){ if(err.name === 'AbortError') return; }
@@ -1095,7 +1109,7 @@ document.addEventListener('click', async ev => {
     case 'close': closeSheet(); break;
     case 'save': saveForm(); break;
     case 'del':
-      if(confirm('Diesen Eintrag wirklich löschen?')){ entries = entries.filter(x => x.id !== t.dataset.id); saveEntries(); closeSheet(); render(); toast('Gelöscht'); }
+      if(confirm('Diesen Eintrag wirklich löschen?')){ entries = entries.filter(x => x.id !== t.dataset.id); saveEntries(); closeSheet(); render(); toast('Gelöscht'); autoBackup(); }
       break;
     case 'scale': {
       const k = t.dataset.k, v = +t.dataset.v;
@@ -1135,6 +1149,7 @@ document.addEventListener('input', ev => {
 document.addEventListener('change', ev => {
   if(ev.target.id === 'lk_sub'){ lookupKey = ev.target.value; lookupRoute = PROFILES[lookupKey].def; render(); }
   if(ev.target.id === 'lk_route'){ lookupRoute = ev.target.value; render(); }
+  if(ev.target.id === 'autoBackup'){ settings.autoBackup = ev.target.checked; saveSettings(); toast(ev.target.checked ? 'Backup nach jedem Eintrag: an' : 'Backup nach jedem Eintrag: aus'); }
 });
 /* Live-Aktualisierung alle 30 Sekunden */
 setInterval(() => {
