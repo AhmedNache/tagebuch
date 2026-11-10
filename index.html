@@ -145,6 +145,39 @@ table.t td.n,table.t th.n{text-align:right;white-space:nowrap}
 .toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 a{color:var(--accent)}
+
+/* Wirkungsverlauf */
+:root{--ph-onset:#b3bcc6;--ph-comeup:#f5a524;--ph-peak:#8e4ec6;--ph-offset:#3e8ed0;--ph-after:#9aa4ae}
+@media (prefers-color-scheme: dark){:root{--ph-onset:#56616c;--ph-comeup:#f0b04a;--ph-peak:#b07ce8;--ph-offset:#5aa6e6;--ph-after:#6b7681}}
+.ph-onset{background:var(--ph-onset)} .ph-comeup{background:var(--ph-comeup)} .ph-peak{background:var(--ph-peak)} .ph-offset{background:var(--ph-offset)} .ph-after{background:var(--ph-after)}
+.tl{position:relative;padding-top:18px;margin:4px 0}
+.tl-row{margin-bottom:8px}
+.tl-name{font-size:13px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-bar{position:relative;height:24px;background:var(--surface2);border-radius:7px;overflow:hidden}
+.tl-seg{position:absolute;top:0;bottom:0}
+.tl-seg.ph-after{background:linear-gradient(90deg,var(--ph-after),transparent)}
+.tl-axis{position:relative;height:18px;border-top:1px solid var(--border)}
+.tl-axis span{position:absolute;top:3px;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
+.tl-now{position:absolute;top:14px;bottom:16px;width:2px;margin-left:-1px;background:var(--danger);z-index:2;border-radius:1px}
+.tl-now span{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:var(--danger);letter-spacing:.04em;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted);margin:2px 0 4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.status .ph{font-size:24px;font-weight:750;margin:2px 0 4px;display:flex;align-items:center;gap:8px}
+.pdot{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none}
+.flag.live{background:var(--surface2);color:var(--text)}
+.flag.live .pdot{width:8px;height:8px;margin-right:4px;vertical-align:0}
+.prog{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin:6px 0 10px}
+.prog div{height:100%;background:linear-gradient(90deg,var(--ph-comeup),var(--ph-peak),var(--ph-offset));border-radius:4px}
+.status>div{margin-bottom:4px}
+.fx ul,.pl ul{margin:4px 0 0;padding-left:18px;font-size:14px}
+.pl{list-style:none;padding:0;margin:14px 0 4px}
+.pl>li{position:relative;padding:0 0 12px 22px;margin-left:6px;border-left:2px solid var(--border)}
+.pl>li:last-child{border-left-color:transparent;padding-bottom:0}
+.pl .pd{position:absolute;left:-8px;top:8px;width:14px;height:14px;border-radius:50%;border:2px solid var(--bg)}
+.pl .box{padding:6px 10px;border-radius:10px}
+.pl>li.cur .box{background:var(--surface2);box-shadow:0 0 0 2px var(--accent) inset}
+.pl>li.past{opacity:.5}
+.nowtag{font-size:10px;font-weight:800;color:var(--danger);letter-spacing:.05em;margin-left:4px}
 ol.steps{padding-left:20px;margin:6px 0}
 ol.steps li{margin:4px 0}
 </style>
@@ -155,6 +188,7 @@ ol.steps li{margin:4px 0}
 <button id="fab" data-act="new" aria-label="Neuer Eintrag">+</button>
 <nav class="tabs" id="tabs">
   <button data-act="tab" data-view="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6"/></svg>Tagebuch</button>
+  <button data-act="tab" data-view="live"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12h4l2.5-6.5 4 13 2.5-6.5h6"/></svg>Wirkung</button>
   <button data-act="tab" data-view="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Kalender</button>
   <button data-act="tab" data-view="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Statistik</button>
   <button data-act="tab" data-view="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>Mehr</button>
@@ -175,7 +209,7 @@ ol.steps li{margin:4px 0}
 <script>
 'use strict';
 /* ---------- Grunddaten ---------- */
-const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.0';
+const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.1';
 const RATINGS = [null,
   {e:'😖', t:'sehr schlecht', c:'#e5484d'},
   {e:'🙁', t:'schlecht',      c:'#f76b15'},
@@ -329,6 +363,159 @@ function warningsFor(entry, all){
 }
 const alertsHtml = ws => ws.map(w => `<div class="alert ${w.lvl}">${w.lvl === 'danger' ? '⚠️ ' : w.lvl === 'warn' ? '⚠️ ' : 'ℹ️ '}${w.txt}</div>`).join('');
 
+/* ---------- Wirkungsverlauf ---------- */
+/* Typische Zeiten in Minuten [min, max] – Durchschnittswerte, hängen von Dosis, Körper und Mageninhalt ab. */
+const PHASES = [
+  {k:'onset',  label:'Warten',      desc:'noch keine Wirkung'},
+  {k:'comeup', label:'Anfluten',    desc:'die Wirkung setzt ein'},
+  {k:'peak',   label:'Höhepunkt',   desc:'stärkste Wirkung'},
+  {k:'offset', label:'Abklingen',   desc:'die Wirkung lässt nach'},
+  {k:'after',  label:'Nachwirkung', desc:'Nachwehen und Erholung'}];
+const ROUTE_NAMES = {oral:'geschluckt', smoked:'geraucht', nasal:'gezogen (Nase)'};
+const PROFILES = {
+  alkohol:{name:'Alkohol', def:'oral', routes:{oral:{onset:[5,15],comeup:[15,30],peak:[30,90],offset:[60,180],after:[360,720]}},
+    fx:{onset:['noch kaum spürbar'], comeup:['Wärme, Lockerheit','gesprächiger'], peak:['Enthemmung','Reaktion und Gleichgewicht schlechter','bei viel: Übelkeit, Lallen'], offset:['Müdigkeit','Stimmung kann kippen'], after:['Kater: Kopfschmerz, Durst, Übelkeit','schlechter Schlaf']},
+    tip:'Die Dauer hängt stark von der Menge ab: Der Körper baut nur ca. 0,1 Promille pro Stunde ab. Zwischendurch Wasser trinken.'},
+  cannabis:{name:'Cannabis', def:'smoked', routes:{smoked:{onset:[1,5],comeup:[5,10],peak:[15,45],offset:[60,120],after:[120,360]}, oral:{onset:[30,120],comeup:[30,60],peak:[120,240],offset:[120,240],after:[360,720]}},
+    fx:{onset:['erstes Kribbeln'], comeup:['Entspannung','Herzklopfen möglich','trockener Mund, rote Augen'], peak:['High, Lachen, Hunger','Sinne intensiver','Zeitgefühl verändert','bei viel: Unruhe, Angst, Paranoia'], offset:['ruhiger werden','Müdigkeit'], after:['Benommenheit','weniger Traumschlaf']},
+    tip:'Gegessen (Edibles) kommt die Wirkung erst nach bis zu 2 Std. Nicht nachlegen, nur weil noch nichts kommt!'},
+  mdma:{name:'MDMA / Ecstasy', def:'oral', routes:{oral:{onset:[30,60],comeup:[15,30],peak:[90,150],offset:[60,120],after:[720,2880]}},
+    fx:{onset:['noch nichts oder leichte Unruhe'], comeup:['Kribbeln, Wärmewellen','Nervosität, evtl. Übelkeit','Pupillen werden weit'], peak:['Euphorie, Nähe, Offenheit','Energie, Musik intensiver','Kiefermahlen','Körpertemperatur steigt'], offset:['Euphorie lässt nach','Erschöpfung','Lust nachzulegen'], after:['Müdigkeit, Leere','gedrückte Stimmung (1–3 Tage)','Konzentration schlechter']},
+    tip:'Pausen beim Tanzen, ca. 250 ml Wasser pro Stunde (nicht mehr). Nachlegen verlängert vor allem die Nebenwirkungen.'},
+  kokain:{name:'Kokain', def:'nasal', routes:{nasal:{onset:[1,5],comeup:[5,10],peak:[15,30],offset:[15,45],after:[60,180]}, smoked:{onset:[0,1],comeup:[1,2],peak:[5,10],offset:[10,20],after:[30,90]}},
+    fx:{onset:['schneller Anstieg'], comeup:['Wachheit, Selbstbewusstsein','betäubte Nase und Rachen'], peak:['Euphorie, Redebedürfnis','Herzrasen','Selbstüberschätzung'], offset:['Gereiztheit','starker Wunsch nachzulegen'], after:['Erschöpfung, Niedergeschlagenheit','schlechter Schlaf']},
+    tip:'Die kurze Wirkung verleitet zum Nachlegen. Vorher festlegen, wie viel du nimmst. Eigenes Röhrchen benutzen.'},
+  amphetamin:{name:'Speed (Amphetamin)', def:'nasal', routes:{nasal:{onset:[5,10],comeup:[15,30],peak:[120,240],offset:[60,180],after:[720,1440]}, oral:{onset:[30,60],comeup:[30,60],peak:[150,300],offset:[60,180],after:[720,1440]}},
+    fx:{onset:['Brennen in der Nase'], comeup:['Wachheit, Antrieb','Herz schlägt schneller'], peak:['Energie, Redebedürfnis','kein Hunger, kein Schlaf','Kiefermahlen, Unruhe'], offset:['Gereiztheit','Erschöpfung beginnt'], after:['Schlaflosigkeit','Niedergeschlagenheit, Heißhunger']},
+    tip:'Trotz fehlendem Hunger etwas essen und trinken. Mit Schlafproblemen in der Nacht danach rechnen.'},
+  meth:{name:'Crystal Meth', def:'smoked', routes:{smoked:{onset:[0,5],comeup:[5,15],peak:[240,480],offset:[120,240],after:[720,1440]}, oral:{onset:[20,60],comeup:[30,60],peak:[240,480],offset:[120,300],after:[720,2160]}},
+    fx:{onset:['sehr schneller Anstieg'], comeup:['starke Wachheit','Herzrasen'], peak:['Euphorie, Antrieb','kein Hunger, kein Schlaf','Unruhe, Kiefermahlen'], offset:['Gereiztheit','Erschöpfung'], after:['langer Absturz, Leere','Schlaflosigkeit']},
+    tip:'Sehr lange Wirkung und hohes Abhängigkeitsrisiko. Schlaf, Essen und Trinken fest einplanen.'},
+  ketamin:{name:'Ketamin', def:'nasal', routes:{nasal:{onset:[2,5],comeup:[5,10],peak:[15,45],offset:[15,30],after:[60,180]}, oral:{onset:[10,25],comeup:[10,20],peak:[30,60],offset:[60,120],after:[120,360]}},
+    fx:{onset:['Taubheitsgefühl'], comeup:['Schwindel','Bewegungen werden schwer'], peak:['Dissoziation, Traumzustand','bei viel: „K-Hole“, kaum Kontakt zur Umgebung','Übelkeit'], offset:['Zurückkommen, wackelig'], after:['Benommenheit','bei häufigem Konsum: Blasenprobleme']},
+    tip:'Sitzen oder liegen, nicht allein, nicht in der Nähe von Wasser. Nicht mit Alkohol mischen.'},
+  ghb:{name:'GHB / GBL', def:'oral', routes:{oral:{onset:[10,20],comeup:[5,15],peak:[30,60],offset:[30,90],after:[60,180]}},
+    fx:{onset:['noch nichts – nicht nachlegen!'], comeup:['Lockerheit wie bei Alkohol'], peak:['Euphorie, Enthemmung','Schwindel','bei zu viel: plötzlicher Tiefschlaf (Koma)'], offset:['Müdigkeit'], after:['meist wenig, evtl. Benommenheit']},
+    tip:'Genau abmessen, mindestens 2 Std. bis zum Nachlegen, nie mit Alkohol. GBL wirkt schneller und stärker als GHB.'},
+  lsd:{name:'LSD', def:'oral', routes:{oral:{onset:[20,60],comeup:[45,90],peak:[180,300],offset:[180,300],after:[360,1440]}},
+    fx:{onset:['noch nichts – Geduld'], comeup:['Kribbeln, Gänsehaut','Nervosität','erste Muster, Farben intensiver'], peak:['starke visuelle Effekte','verändertes Denken und Zeitgefühl','intensive Gefühle (schön oder schwierig)'], offset:['Effekte werden schwächer','nachdenkliche Stimmung','Einschlafen fällt schwer'], after:['Erschöpfung','Nachglühen oder leichte Verwirrung']},
+    tip:'Ruhiger Ort, vertraute Person, den ganzen Tag einplanen. In schwierigen Phasen: Raum wechseln, Musik ändern und daran denken, dass es vorbeigeht.'},
+  pilze:{name:'Pilze (Psilocybin)', def:'oral', routes:{oral:{onset:[20,40],comeup:[15,30],peak:[60,120],offset:[60,120],after:[120,360]}},
+    fx:{onset:['evtl. Übelkeit','Gähnen'], comeup:['Kribbeln, Lachen','Farben intensiver'], peak:['Muster und Visuals','starke Gefühle','verändertes Zeitgefühl'], offset:['sanftes Ausklingen','nachdenklich'], after:['Müdigkeit','Nachglühen']},
+    tip:'Übelkeit am Anfang ist normal. Nicht nachlegen, wenn nach 1 Std. noch wenig kommt.'},
+  benzos:{name:'Benzos', def:'oral', routes:{oral:{onset:[15,45],comeup:[15,30],peak:[60,180],offset:[240,600],after:[360,1440]}},
+    fx:{onset:['noch nichts'], comeup:['Entspannung','Angst lässt nach'], peak:['Müdigkeit, Gleichgültigkeit','Gedächtnislücken möglich','Gleichgewicht schlechter'], offset:['Schläfrigkeit'], after:['Benommenheit am nächsten Tag']},
+    tip:'Je nach Mittel sehr unterschiedlich (Alprazolam kurz, Diazepam sehr lang). Wegen Gedächtnislücken hilft das Eintragen gegen versehentliches Nachnehmen.'},
+  opioide:{name:'Opioide', def:'oral', routes:{oral:{onset:[15,30],comeup:[15,30],peak:[60,180],offset:[120,240],after:[240,720]}},
+    fx:{onset:['noch nichts'], comeup:['Wärme, Entspannung'], peak:['Euphorie, Schläfrigkeit','enge Pupillen','Juckreiz, Übelkeit','Atmung wird flacher'], offset:['Dösen'], after:['Verstopfung','bei Gewöhnung: Entzugsgefühle']},
+    tip:'Atemdämpfung ist die größte Gefahr. Nie allein, nie mit Alkohol oder Benzos. Naloxon-Nasenspray kann Leben retten.'},
+  dxm:{name:'DXM', def:'oral', routes:{oral:{onset:[30,120],comeup:[30,60],peak:[120,300],offset:[120,300],after:[360,1440]}},
+    fx:{onset:['noch nichts'], comeup:['Übelkeit','Juckreiz'], peak:['Dissoziation','„Robotergang“','veränderte Wahrnehmung'], offset:['Müdigkeit'], after:['Benommenheit, Kater']},
+    tip:'Nur Präparate mit DXM als einzigem Wirkstoff. Zusätze wie Paracetamol oder Antihistaminika sind in hohen Mengen gefährlich.'}
+};
+function routeKey(r){
+  r = norm(r);
+  if(['geschluckt','getrunken','unter die zunge'].includes(r)) return 'oral';
+  if(['geraucht','verdampft'].includes(r)) return 'smoked';
+  if(r.startsWith('gezogen')) return 'nasal';
+  return null;
+}
+function profileFor(substance, route){
+  const k = keysFor(substance).find(x => PROFILES[x]);
+  if(!k) return null;
+  const p = PROFILES[k], rk = routeKey(route), use = p.routes[rk] ? rk : p.def;
+  return {key:k, p, route:use, assumed:!p.routes[rk], t:p.routes[use]};
+}
+function phasesFor(ts, t){
+  let a = ts, lo = ts, hi = ts;
+  return PHASES.map(ph => {
+    const [mn, mx] = t[ph.k], from = a;
+    a += (mn + mx) / 2 * 6e4; lo += mn * 6e4; hi += mx * 6e4;
+    return {...ph, from, to:a, endLo:lo, endHi:hi, range:[mn, mx]};
+  });
+}
+const fmtH = m => fmtNum(Math.round(m / 6) / 10);
+function fmtRange([a, b]){
+  if(b < 60) return `${a}–${b} Min.`;
+  if(a < 60) return `${a} Min. – ${fmtH(b)} Std.`;
+  return `${fmtH(a)}–${fmtH(b)} Std.`;
+}
+function fmtSpan(ms){
+  const m = Math.max(0, Math.round(ms / 6e4));
+  if(m < 60) return `${m} Min.`;
+  const h = Math.floor(m / 60), r = m % 60;
+  return r ? `${h} Std. ${r} Min.` : `${h} Std.`;
+}
+function fmtWhen(ts){
+  return dayKey(ts) === dayKey(Date.now()) ? fmtTime(ts) : `${new Date(ts).toLocaleDateString('de-DE', {weekday:'short'})} ${fmtTime(ts)}`;
+}
+function phaseAt(phs, now){
+  if(now < phs[0].from) return -2;
+  return phs.findIndex(p => now >= p.from && now < p.to);
+}
+const LEGEND = `<div class="legend">${PHASES.map(p => `<span><i class="ph-${p.k}"></i>${p.label}</span>`).join('')}</div>`;
+
+function timelineHtml(rows, now){
+  const start = Math.min(...rows.map(r => r.ts));
+  const mainEnd = Math.max(...rows.map(r => r.phs[3].to));
+  const end = mainEnd + Math.max(30 * 6e4, (mainEnd - start) * 0.25);
+  const span = end - start;
+  const pct = t => Math.max(0, Math.min(100, (t - start) / span * 100));
+  const bars = rows.map(r => `<div class="tl-row">${r.name ? `<div class="tl-name">${r.name}</div>` : ''}<div class="tl-bar">${
+    r.phs.map(ph => { const l = pct(ph.from), w = pct(Math.min(ph.to, end)) - l; return w > 0 ? `<div class="tl-seg ph-${ph.k}" style="left:${l}%;width:${w}%"></div>` : ''; }).join('')
+  }</div></div>`).join('');
+  const hours = span / 36e5;
+  const step = [0.25, 0.5, 1, 2, 3, 4, 6, 12, 24].find(s => hours / s <= 6) || 24;
+  const d0 = new Date(start); d0.setMinutes(0, 0, 0);
+  if(step >= 1) d0.setHours(Math.floor(d0.getHours() / step) * step);
+  let ticks = '';
+  for(let t = d0.getTime(); t <= end; t += step * 36e5){
+    const p = pct(t);
+    if(t >= start && p >= 6 && p <= 94) ticks += `<span style="left:${p}%">${fmtTime(t)}</span>`;
+  }
+  const nowLine = now && now >= start && now <= end ? `<div class="tl-now" style="left:${pct(now)}%"><span>Jetzt</span></div>` : '';
+  return `<div class="tl">${bars}<div class="tl-axis">${ticks}</div>${nowLine}</div>`;
+}
+
+function statusHtml(name, ts, prof, phs, now){
+  const i = phaseAt(phs, now);
+  if(i === -2) return `<div class="card status"><div class="small muted">${name}</div><div class="ph">Geplant</div><div>Einnahme um ${fmtWhen(ts)}</div></div>`;
+  if(i === -1) return '';
+  const cur = phs[i], next = phs[i + 1], main = phs[3];
+  const prog = Math.min(100, (now - ts) / (main.to - ts) * 100);
+  const fx = prof.p.fx[cur.k] || [];
+  return `<div class="card status">
+    <div class="small muted">${name} · eingenommen ${fmtWhen(ts)} (vor ${fmtSpan(now - ts)})</div>
+    <div class="ph"><i class="pdot ph-${cur.k}"></i>${cur.label}</div>
+    ${i <= 3 ? `<div class="prog"><div style="width:${prog}%"></div></div>` : ''}
+    ${i < 3 ? `<div>Als Nächstes: <b>${next.label}</b> ab ca. ${fmtWhen(next.from)} <span class="muted">(in ${fmtSpan(next.from - now)})</span></div>` : ''}
+    ${i <= 3 ? `<div>Hauptwirkung vorbei: ca. <b>${fmtWhen(main.to)}</b> <span class="muted small">(zwischen ${fmtWhen(main.endLo)} und ${fmtWhen(main.endHi)})</span></div>`
+             : `<div>Die Hauptwirkung ist vorbei. Nachwirkungen können bis ca. <b>${fmtWhen(phs[4].endHi)}</b> anhalten.</div>`}
+    ${fx.length ? `<div class="fx"><span class="muted small">Typisch jetzt:</span><ul>${fx.map(f => `<li>${esc(f)}</li>`).join('')}</ul></div>` : ''}
+    ${i <= 1 ? '<div class="alert warn">⏳ Die Wirkung baut sich noch auf. Nicht nachlegen!</div>' : ''}
+  </div>`;
+}
+
+function phaseListHtml(phs, prof, now){
+  const i = now ? phaseAt(phs, now) : -3;
+  return `<ol class="pl">${phs.map((ph, n) => `<li class="${n === i ? 'cur' : ''} ${i >= 0 && n < i || i === -1 && now ? 'past' : ''}">
+    <span class="pd ph-${ph.k}"></span>
+    <div class="box"><b>${ph.label}</b>${n === i ? ' <span class="nowtag">JETZT</span>' : ''}
+      <div class="small muted">${fmtWhen(ph.from)} – ${n === 4 ? 'ca. ' + fmtWhen(ph.endHi) : fmtWhen(ph.to)} · dauert ${fmtRange(ph.range)}</div>
+      <ul>${(prof.p.fx[ph.k] || [ph.desc]).map(f => `<li>${esc(f)}</li>`).join('')}</ul></div></li>`).join('')}</ol>`;
+}
+
+function verlaufHtml(e, prof, now){
+  const phs = phasesFor(e.ts, prof.t);
+  const name = esc(e.substance);
+  return `${prof.assumed ? `<div class="small muted">Einnahme nicht angegeben, angenommen: ${ROUTE_NAMES[prof.route]}</div>` : ''}
+    ${timelineHtml([{name:'', ts:e.ts, phs}], now)}${LEGEND}
+    ${statusHtml(name, e.ts, prof, phs, now)}
+    ${phaseListHtml(phs, prof, now)}
+    <div class="alert info">💡 ${esc(prof.p.tip)}</div>`;
+}
+const summaryText = phs => `Wirkung ab ca. <b>${fmtWhen(phs[1].from)}</b> · Höhepunkt ca. <b>${fmtTime(phs[2].from)}–${fmtTime(phs[2].to)}</b> · vorbei ca. <b>${fmtWhen(phs[3].to)}</b>`;
+
 /* ---------- Abgeleitete Daten ---------- */
 function substances(){
   const m = new Map();
@@ -344,16 +531,18 @@ const sorted = () => [...entries].sort((a, b) => b.ts - a.ts);
 
 /* ---------- Zustand ---------- */
 let view = 'list', search = '', subFilter = '', calMonth = new Date(), calSel = dayKey(Date.now()), statRange = 30, form = null;
+let lookupKey = 'mdma', lookupRoute = 'oral';
 calMonth.setDate(1);
 
 /* ---------- Rendering ---------- */
-const TITLES = {list:'Tagebuch', cal:'Kalender', stats:'Statistik', more:'Mehr'};
+const TITLES = {list:'Tagebuch', live:'Wirkung', cal:'Kalender', stats:'Statistik', more:'Mehr'};
 function render(){
   $('#title').textContent = TITLES[view];
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.view === view));
-  $('#fab').hidden = !(view === 'list' || view === 'cal');
+  $('#fab').hidden = !(view === 'list' || view === 'cal' || view === 'live');
   const v = $('#view');
   if(view === 'list') v.innerHTML = listView();
+  if(view === 'live') v.innerHTML = liveView();
   if(view === 'cal') v.innerHTML = calView();
   if(view === 'stats') v.innerHTML = statsView();
   if(view === 'more') v.innerHTML = moreView();
@@ -399,10 +588,62 @@ function entryCard(e){
   const amount = e.amount ? `${esc(e.amount)} ${esc(e.unit || '')}` : '';
   const meta = [amount, esc(e.route || '')].filter(Boolean).join(' · ');
   const note = e.note || e.effects || '';
+  let live = '';
+  const prof = profileFor(e.substance, e.route);
+  if(prof && e.ts <= Date.now() && Date.now() - e.ts < 4 * DAY){
+    const phs = phasesFor(e.ts, prof.t), i = phaseAt(phs, Date.now());
+    if(i >= 0) live = `<span class="flag live"><i class="pdot ph-${phs[i].k}"></i>${phs[i].label}</span>`;
+  }
   return `<button class="entry" data-act="open" data-id="${e.id}">
     <span class="emo">${r ? r.e : '▫️'}</span>
-    <span class="mid"><b>${esc(e.substance)}</b>${flag}<br><span class="small muted">${meta}</span>${note ? `<div class="note">${esc(note)}</div>` : ''}</span>
+    <span class="mid"><b>${esc(e.substance)}</b>${flag}${live}<br><span class="small muted">${meta}</span>${note ? `<div class="note">${esc(note)}</div>` : ''}</span>
     <span class="time">${fmtTime(e.ts)}</span></button>`;
+}
+
+function liveView(){
+  const now = Date.now();
+  const all = entries.filter(e => e.ts <= now + 12 * 36e5 && e.ts > now - 4 * DAY)
+    .map(e => ({e, prof:profileFor(e.substance, e.route)}))
+    .filter(x => x.prof)
+    .map(x => ({...x, phs:phasesFor(x.e.ts, x.prof.t)}))
+    .filter(x => now < x.phs[4].to)
+    .sort((a, b) => a.e.ts - b.e.ts);
+  const main = all.filter(x => now < x.phs[3].to + 2 * 36e5);
+  const after = all.filter(x => !main.includes(x));
+  const unknown = entries.filter(e => e.ts <= now && e.ts > now - 6 * 36e5 && !profileFor(e.substance, e.route));
+  let html = '';
+  if(main.length){
+    html += `<h3>Gerade aktiv</h3><div class="card">${timelineHtml(main.map(x => ({name:`<b>${esc(x.e.substance)}</b> <span class="muted">· ${fmtWhen(x.e.ts)}</span>`, ts:x.e.ts, phs:x.phs})), now)}${LEGEND}</div>`;
+    html += main.map(x => statusHtml(`<b>${esc(x.e.substance)}</b>`, x.e.ts, x.prof, x.phs, now)).join('');
+    if(main.length > 1) html += '<div class="alert warn">Mehrere Substanzen gleichzeitig: Die Wirkungen können sich gegenseitig verstärken oder verlängern.</div>';
+  }
+  if(after.length){
+    html += `<h3>Nachwirkung</h3>` + after.map(x => statusHtml(`<b>${esc(x.e.substance)}</b>`, x.e.ts, x.prof, x.phs, now)).join('');
+  }
+  if(unknown.length) html += `<div class="small muted" style="margin:6px 2px">Für ${unknown.map(e => esc(e.substance)).join(', ')} gibt es keine Verlaufsdaten.</div>`;
+  if(!main.length && !after.length) html += `<div class="card" style="text-align:center"><div style="font-size:36px">🌙</div><b>Gerade wirkt laut Tagebuch nichts.</b><div class="small muted">Wenn du einen Eintrag anlegst, siehst du hier live, in welcher Phase du bist und wann es vorbei ist.</div></div>`;
+
+  // Nachschlagen
+  const keys = Object.keys(PROFILES);
+  if(!PROFILES[lookupKey]) lookupKey = keys[0];
+  const p = PROFILES[lookupKey];
+  if(!p.routes[lookupRoute]) lookupRoute = p.def;
+  const phs = phasesFor(now, p.routes[lookupRoute]);
+  const prof = {p, t:p.routes[lookupRoute]};
+  const total = [phs[3].endLo - now, phs[3].endHi - now].map(x => Math.round(x / 6e4));
+  html += `<h3>Nachschlagen</h3>
+    <div class="card">
+      <div class="row">
+        <div><label class="f" for="lk_sub" style="margin-top:0">Substanz</label><select id="lk_sub">${keys.map(k => `<option value="${k}" ${k === lookupKey ? 'selected' : ''}>${PROFILES[k].name}</option>`).join('')}</select></div>
+        <div><label class="f" for="lk_route" style="margin-top:0">Einnahme</label><select id="lk_route">${Object.keys(p.routes).map(r => `<option value="${r}" ${r === lookupRoute ? 'selected' : ''}>${ROUTE_NAMES[r]}</option>`).join('')}</select></div>
+      </div>
+      <p class="small" style="margin:12px 0 0">Wenn du <b>jetzt</b> nimmst: Die Hauptwirkung dauert ca. <b>${fmtRange(total)}</b></p>
+      ${timelineHtml([{name:'', ts:now, phs}], now)}${LEGEND}
+      ${phaseListHtml(phs, prof, null)}
+      <div class="alert info">💡 ${esc(p.tip)}</div>
+    </div>
+    <p class="small muted">Alle Zeiten sind Durchschnittswerte. Dosis, Körpergewicht, Toleranz, Essen und Mischkonsum verändern den Verlauf stark.</p>`;
+  return html;
 }
 
 function calView(){
@@ -546,6 +787,7 @@ function openForm(e, presetDay){
     <div class="scale-label" id="lbl_rating">${form.rating ? RATINGS[form.rating].t : 'Tippe zum Bewerten'}</div>
     <label class="f" for="f_note">Notizen</label>
     <textarea id="f_note" placeholder="Wie hat es sich angefühlt? Was war gut, was nicht?">${esc(e.note || '')}</textarea>
+    <div id="f_tl"></div>
     <div id="f_warn"></div>
     <details ${hasExtra ? 'open' : ''}><summary>Mehr Details</summary>
       <label class="f">Stimmung vorher</label>${scaleHtml('moodBefore', form.moodBefore, MOODS, true)}
@@ -587,6 +829,12 @@ function updateFormWarnings(){
   const e = readForm();
   e.id = form.id || '__new__';
   $('#f_warn').innerHTML = alertsHtml(warningsFor(e, entries));
+  const prof = profileFor(e.substance, e.route);
+  if(prof){
+    const phs = phasesFor(e.ts, prof.t);
+    $('#f_tl').innerHTML = `<div class="card" style="margin-top:12px"><div class="small"><b>⏱ Erwarteter Verlauf</b>${prof.assumed ? ` <span class="muted">(angenommen: ${ROUTE_NAMES[prof.route]})</span>` : ''}</div>
+      ${timelineHtml([{name:'', ts:e.ts, phs}], Date.now())}<div class="small">${summaryText(phs)}</div></div>`;
+  } else $('#f_tl').innerHTML = '';
 }
 function saveForm(){
   const e = readForm();
@@ -622,6 +870,7 @@ function openDetail(id){
       ${row('Nächster Tag', esc(e.nextDay))}
     </dl>
     ${alertsHtml(warningsFor(e, entries))}
+    ${profileFor(e.substance, e.route) ? `<h3>Wirkungsverlauf</h3><div id="tl_detail" data-id="${e.id}">${verlaufHtml(e, profileFor(e.substance, e.route), Date.now())}</div>` : ''}
     ${!e.nextDay && Date.now() - e.ts > 12 * 36e5 && Date.now() - e.ts < 4 * DAY ? '<div class="alert info">💡 Wie ging es dir am nächsten Tag? Tippe auf „Bearbeiten“, um es zu ergänzen.</div>' : ''}
     <button class="btn" data-act="edit" data-id="${e.id}">Bearbeiten</button>
     <button class="btn danger" data-act="del" data-id="${e.id}">Löschen</button>`);
@@ -755,8 +1004,23 @@ $('#sheet').addEventListener('click', ev => { if(ev.target.id === 'sheet') close
 document.addEventListener('input', ev => {
   if(ev.target.id === 'search'){ search = ev.target.value; renderListItems(); }
   if(ev.target.id === 'f_unit') form && (form.unitTouched = true);
-  if(['f_sub', 'f_ts'].includes(ev.target.id)) updateFormWarnings();
+  if(['f_sub', 'f_ts', 'f_route'].includes(ev.target.id)) updateFormWarnings();
 });
+document.addEventListener('change', ev => {
+  if(ev.target.id === 'lk_sub'){ lookupKey = ev.target.value; lookupRoute = PROFILES[lookupKey].def; render(); }
+  if(ev.target.id === 'lk_route'){ lookupRoute = ev.target.value; render(); }
+});
+/* Live-Aktualisierung alle 30 Sekunden */
+setInterval(() => {
+  if(document.hidden || !$('#lock').hidden) return;
+  const det = $('#tl_detail');
+  if(!$('#sheet').hidden){
+    if(det){ const e = entries.find(x => x.id === det.dataset.id), p = e && profileFor(e.substance, e.route); if(p) det.innerHTML = verlaufHtml(e, p, Date.now()); }
+    return;
+  }
+  if(view === 'live') render();
+  else if(view === 'list') renderListItems();
+}, 30000);
 document.addEventListener('change', ev => {
   if(ev.target.id === 'f_sub' && form && !form.unitTouched){
     const s = substances().find(x => x.key === norm(ev.target.value));
