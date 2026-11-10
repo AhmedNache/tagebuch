@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1418">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tagebuch">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>Tagebuch</title>
+<style>
+:root{
+  --bg:#f4f6f8; --surface:#ffffff; --surface2:#eaeef2; --text:#141a21; --muted:#5f6b78; --border:#dde3e9;
+  --accent:#2f7d78; --accent-text:#ffffff;
+  --danger:#c62f35; --danger-bg:#fdecec; --warn:#9a5b00; --warn-bg:#fff3dc; --info:#1f5bb0; --info-bg:#e8f0fc;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1418; --surface:#182026; --surface2:#222c35; --text:#e8edf1; --muted:#93a0ab; --border:#2a3540;
+    --accent:#4fb3ab; --accent-text:#06201e;
+    --danger:#ff7b7f; --danger-bg:#3a1a1c; --warn:#f0b04a; --warn-bg:#352612; --info:#8ab8ff; --info-bg:#162842;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+body.noscroll{overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 12px) 16px 8px;max-width:640px;margin:0 auto}
+.top h1{font-size:30px;margin:0;font-weight:750;letter-spacing:-.02em}
+main{padding:4px 16px calc(110px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
+h2{font-size:20px;margin:0}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:22px 0 8px;font-weight:650}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* Tab-Leiste */
+.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);z-index:10}
+.tabs button{flex:1;background:none;border:0;color:var(--muted);padding:8px 0 6px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button.on{color:var(--accent)}
+.tabs svg{width:24px;height:24px}
+#fab{position:fixed;right:18px;bottom:calc(74px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-text);font-size:34px;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.28);z-index:11}
+#fab[hidden]{display:none}
+
+/* Karten & Listen */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.entry{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+.entry .emo{font-size:28px;line-height:1.1;width:32px;text-align:center;flex:none}
+.entry .mid{flex:1;min-width:0}
+.entry .mid b{font-weight:650}
+.entry .note{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry .time{color:var(--muted);font-size:14px;flex:none;text-align:right}
+.flag{display:inline-block;font-size:12px;padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:1px}
+.flag.danger{background:var(--danger-bg);color:var(--danger)}
+.flag.warn{background:var(--warn-bg);color:var(--warn)}
+.dayhead{font-size:14px;font-weight:650;color:var(--muted);margin:18px 2px 8px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;margin:8px -16px 0;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;white-space:nowrap}
+.chip.on{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .big{font-size:44px;margin-bottom:8px}
+.banner{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:14px;background:var(--info-bg);color:var(--info)}
+.banner .x{margin-left:auto;background:none;border:0;font-size:18px;padding:0 4px;color:inherit}
+
+/* Formulare */
+label.f{display:block;margin:14px 0 5px;font-size:13px;color:var(--muted);font-weight:650}
+input,select,textarea{width:100%;font:inherit;font-size:16px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);min-height:44px}
+input[type=datetime-local]{-webkit-appearance:none;appearance:none;display:block}
+textarea{min-height:76px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.row{display:flex;gap:10px}
+.row>*{flex:1;min-width:0}
+.scale{display:flex;gap:6px}
+.scale button{flex:1;font-size:26px;padding:8px 0;border-radius:12px;border:1px solid var(--border);background:var(--surface);opacity:.55;filter:grayscale(.6)}
+.scale button.on{opacity:1;filter:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;background:var(--surface2)}
+.scale.small button{font-size:20px;padding:6px 0}
+.scale-label{font-size:13px;color:var(--muted);margin-top:4px;min-height:18px}
+details{margin-top:14px;border-top:1px solid var(--border);padding-top:6px}
+summary{font-weight:650;padding:8px 0;color:var(--accent);cursor:pointer}
+.btn{display:block;width:100%;border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:12px;font-weight:600;margin-top:10px;text-align:center}
+.btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.btn.danger{color:var(--danger)}
+.alert{border-radius:10px;padding:10px 12px;margin:8px 0;font-size:14px}
+.alert.danger{background:var(--danger-bg);color:var(--danger)}
+.alert.warn{background:var(--warn-bg);color:var(--warn)}
+.alert.info{background:var(--info-bg);color:var(--info)}
+
+/* Sheet */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none}
+.sheet-inner{background:var(--bg);width:100%;max-width:640px;max-height:94vh;max-height:94dvh;overflow:auto;-webkit-overflow-scrolling:touch;border-radius:18px 18px 0 0;padding:0 16px calc(28px + env(safe-area-inset-bottom))}
+.sheet-head{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 0 10px;z-index:2;border-bottom:1px solid var(--border)}
+.sheet-head h2{font-size:17px;text-align:center;flex:1}
+.link{background:none;border:0;color:var(--accent);font-size:16px;padding:4px 2px;min-width:80px;text-align:left}
+.link.b{font-weight:700;text-align:right}
+dl.kv{margin:10px 0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px}
+dl.kv dt{color:var(--muted)}
+dl.kv dd{margin:0;white-space:pre-wrap;word-break:break-word}
+
+/* Kalender */
+.calhead{display:flex;align-items:center;justify-content:space-between;margin:6px 0 10px}
+.calhead button{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:44px;height:40px;font-size:20px}
+.calhead b{font-size:17px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .wd{text-align:center;font-size:12px;color:var(--muted);padding-bottom:2px}
+.cal .d{aspect-ratio:1;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;padding:0}
+.cal .d.out{opacity:.3}
+.cal .d.today{border-color:var(--accent);font-weight:700}
+.cal .d.sel{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.dot{width:8px;height:8px;border-radius:50%;margin-top:3px}
+.dot.none{background:transparent}
+
+/* Statistik */
+.seg{display:flex;background:var(--surface2);border-radius:10px;padding:3px;margin:6px 0 12px}
+.seg button{flex:1;border:0;background:none;border-radius:8px;padding:7px 0;font-size:14px}
+.seg button.on{background:var(--surface);font-weight:650;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+.kpi .v{font-size:26px;font-weight:750}
+.kpi .l{font-size:13px;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:4px;height:130px;padding-top:20px}
+.bars .bar{flex:1;background:var(--accent);border-radius:5px 5px 0 0;min-height:2px;position:relative}
+.bars .bar span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11px;color:var(--muted)}
+.barlabels{display:flex;gap:4px;margin-top:4px}
+.barlabels span{flex:1;text-align:center;font-size:10px;color:var(--muted)}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;padding:6px 4px;border-bottom:1px solid var(--border)}
+table.t td{padding:8px 4px;border-bottom:1px solid var(--border);vertical-align:top}
+table.t td.n,table.t th.n{text-align:right;white-space:nowrap}
+.hbar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:14px}
+.hbar .track{flex:1;height:10px;background:var(--surface2);border-radius:5px;overflow:hidden}
+.hbar .fill{height:100%;border-radius:5px}
+
+/* Sperre */
+#lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+#lock[hidden]{display:none}
+#lock .box{width:100%;max-width:300px;text-align:center}
+#lock input{text-align:center;font-size:24px;letter-spacing:.4em}
+.toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+a{color:var(--accent)}
+ol.steps{padding-left:20px;margin:6px 0}
+ol.steps li{margin:4px 0}
+</style>
+</head>
+<body>
+<header class="top"><h1 id="title">Tagebuch</h1></header>
+<main id="view"></main>
+<button id="fab" data-act="new" aria-label="Neuer Eintrag">+</button>
+<nav class="tabs" id="tabs">
+  <button data-act="tab" data-view="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6"/></svg>Tagebuch</button>
+  <button data-act="tab" data-view="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Kalender</button>
+  <button data-act="tab" data-view="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Statistik</button>
+  <button data-act="tab" data-view="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>Mehr</button>
+</nav>
+<div id="sheet" class="sheet" hidden><div class="sheet-inner" id="sheetBody"></div></div>
+<div id="lock" hidden>
+  <div class="box">
+    <div style="font-size:44px">🔒</div>
+    <h2 style="margin:8px 0 16px">Tagebuch gesperrt</h2>
+    <input id="lockPin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="8" aria-label="PIN">
+    <button class="btn primary" data-act="unlock">Entsperren</button>
+    <div id="lockMsg" class="small" style="color:var(--danger);margin-top:10px;min-height:18px"></div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+
+<script>
+'use strict';
+/* ---------- Grunddaten ---------- */
+const KEY = 'kt_entries', SKEY = 'kt_settings', DAY = 864e5, VERSION = '1.0';
+const RATINGS = [null,
+  {e:'😖', t:'sehr schlecht', c:'#e5484d'},
+  {e:'🙁', t:'schlecht',      c:'#f76b15'},
+  {e:'😐', t:'neutral',       c:'#9ba1a6'},
+  {e:'🙂', t:'gut',           c:'#46a758'},
+  {e:'😄', t:'sehr gut',      c:'#1f9d6b'}];
+const MOODS = [null,'😞','😕','😐','🙂','😊'];
+const UNITS = ['mg','g','µg','ml','Stück','Teile','Lines','Züge','Gläser','Joints','Flaschen'];
+const ROUTES = ['geschluckt','geraucht','verdampft','gezogen (Nase)','getrunken','unter die Zunge','gespritzt','andere'];
+const SUGGEST = ['Alkohol','Cannabis','MDMA','Kokain','Speed','Ketamin','LSD','Pilze','GHB/GBL','Nikotin','Koffein'];
+
+/* Bekannte Substanzen (für Safer-Use-Hinweise) */
+const SUBST = {
+  alkohol:['alkohol','alk','bier','wein','sekt','schnaps','wodka','vodka','gin','rum','whisky','whiskey','tequila','jäger','jägermeister'],
+  cannabis:['cannabis','gras','weed','haschisch','hasch','joint','thc','marihuana','dübel','edible','edibles'],
+  mdma:['mdma','ecstasy','xtc','molly','emma','e','teile'],
+  kokain:['kokain','koks','coke','kokse','crack'],
+  amphetamin:['amphetamin','amphetamine','speed','pep','pepp','paste'],
+  meth:['meth','crystal','methamphetamin','crystal meth'],
+  ketamin:['ketamin','keta','ket','k','special k'],
+  ghb:['ghb','gbl','ghb/gbl','g','liquid ecstasy','bdo','1,4-butandiol'],
+  lsd:['lsd','acid','pappe','pappen','1p-lsd','1cp-lsd'],
+  pilze:['pilze','psilocybin','shrooms','magic mushrooms','trüffel','zauberpilze'],
+  benzos:['benzo','benzos','benzodiazepin','benzodiazepine','diazepam','valium','alprazolam','xanax','lorazepam','tavor','clonazepam','rivotril','etizolam','bromazolam'],
+  opioide:['opioid','opioide','opiat','opiate','heroin','tilidin','oxycodon','oxy','fentanyl','morphin','codein','methadon','tramadol','lean'],
+  tramadol:['tramadol'],
+  dxm:['dxm','dextromethorphan','hustensaft'],
+  ssri:['ssri','sertralin','citalopram','escitalopram','fluoxetin','paroxetin','antidepressiva','antidepressivum'],
+  maoi:['maoi','mao-hemmer','moclobemid','ayahuasca','steppenraute'],
+  lithium:['lithium']
+};
+const COMBOS = [
+  ['alkohol','ghb','danger','Sehr gefährlich: Atemlähmung und Bewusstlosigkeit möglich, schon bei kleinen Mengen.'],
+  ['alkohol','benzos','danger','Gefährlich: beide dämpfen die Atmung, Gefahr von Atemstillstand.'],
+  ['alkohol','opioide','danger','Gefährlich: starke Atemdämpfung, Gefahr von Atemstillstand.'],
+  ['benzos','opioide','danger','Gefährlich: häufige Ursache tödlicher Überdosierungen (Atemstillstand).'],
+  ['ghb','benzos','danger','Gefährlich: Atemlähmung und Bewusstlosigkeit möglich.'],
+  ['ghb','opioide','danger','Gefährlich: Atemlähmung und Bewusstlosigkeit möglich.'],
+  ['ghb','ketamin','danger','Gefährlich: Bewusstlosigkeit und Erbrechen, Erstickungsgefahr.'],
+  ['ketamin','alkohol','danger','Gefährlich: Bewusstlosigkeit und Erbrechen, Erstickungsgefahr.'],
+  ['ketamin','benzos','warn','Vorsicht: verstärkte Dämpfung, Bewusstlosigkeit möglich.'],
+  ['ketamin','opioide','danger','Gefährlich: starke Dämpfung der Atmung.'],
+  ['mdma','maoi','danger','Lebensgefährlich: Serotonin-Syndrom möglich.'],
+  ['mdma','tramadol','danger','Gefährlich: Serotonin-Syndrom und Krampfanfälle möglich.'],
+  ['mdma','dxm','danger','Gefährlich: Serotonin-Syndrom und Überhitzung möglich.'],
+  ['mdma','ssri','warn','Vorsicht: Wirkung abgeschwächt, Verleitung zum Nachlegen; Serotonin-Risiko.'],
+  ['lsd','lithium','danger','Gefährlich: Krampfanfälle und Psychosen beschrieben.'],
+  ['pilze','lithium','danger','Gefährlich: Krampfanfälle und Psychosen beschrieben.'],
+  ['lsd','maoi','warn','Vorsicht: unvorhersehbare, verstärkte Wirkung.'],
+  ['pilze','maoi','warn','Vorsicht: Wirkung stark verstärkt und verlängert.'],
+  ['kokain','alkohol','warn','Vorsicht: Kokaethylen entsteht, stärkere Belastung für Herz und Leber.'],
+  ['kokain','mdma','warn','Vorsicht: hohe Belastung für Herz und Kreislauf.'],
+  ['kokain','amphetamin','warn','Vorsicht: hohe Belastung für Herz und Kreislauf.'],
+  ['amphetamin','mdma','warn','Vorsicht: Überhitzung und Herz-Kreislauf-Belastung.'],
+  ['meth','mdma','warn','Vorsicht: Überhitzung und Herz-Kreislauf-Belastung.'],
+  ['kokain','opioide','danger','Gefährlich: Wirkungen überdecken sich, Überdosis wird spät bemerkt.'],
+  ['alkohol','mdma','warn','Vorsicht: Austrocknung und Überhitzung, Wirkung schlechter einschätzbar.'],
+  ['cannabis','lsd','warn','Vorsicht: kann die Wirkung stark verstärken (Angst, Kontrollverlust).'],
+  ['cannabis','pilze','warn','Vorsicht: kann die Wirkung stark verstärken (Angst, Kontrollverlust).'],
+  ['tramadol','ssri','danger','Gefährlich: Serotonin-Syndrom und Krampfanfälle möglich.'],
+  ['dxm','ssri','danger','Gefährlich: Serotonin-Syndrom möglich.'],
+  ['dxm','alkohol','warn','Vorsicht: verstärkte Dämpfung.']
+];
+
+/* ---------- Speicher ---------- */
+function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ alert('Speichern fehlgeschlagen: ' + e.message); return false; } }
+let entries = lsGet(KEY, []);
+if(!Array.isArray(entries)) entries = [];
+let settings = lsGet(SKEY, {}) || {};
+const saveEntries = () => lsSet(KEY, entries);
+const saveSettings = () => lsSet(SKEY, settings);
+
+/* ---------- Helfer ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const norm = s => String(s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+const pad = n => String(n).padStart(2, '0');
+const toInput = ts => { const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fromInput = v => { const m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)/.exec(v || ''); return m ? new Date(+m[1], m[2]-1, +m[3], +m[4], +m[5]).getTime() : Date.now(); };
+const dayKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const startOfDay = ts => { const d = new Date(ts); d.setHours(0,0,0,0); return d.getTime(); };
+const daysBetween = (a, b) => Math.round((startOfDay(b) - startOfDay(a)) / DAY);
+const fmtTime = ts => new Date(ts).toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+const fmtDate = ts => new Date(ts).toLocaleDateString('de-DE', {day:'numeric', month:'short', year:'numeric'});
+function fmtDay(ts){
+  const d = daysBetween(ts, Date.now());
+  if(d === 0) return 'Heute';
+  if(d === 1) return 'Gestern';
+  const sameYear = new Date(ts).getFullYear() === new Date().getFullYear();
+  return new Date(ts).toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long', year: sameYear ? undefined : 'numeric'});
+}
+function ago(ts){
+  const d = daysBetween(ts, Date.now());
+  if(d <= 0) return 'heute';
+  if(d === 1) return 'gestern';
+  return `vor ${d} Tagen`;
+}
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 1800); }
+const fmtNum = n => n.toLocaleString('de-DE', {maximumFractionDigits:1});
+
+/* ---------- Substanz-Erkennung & Safer-Use ---------- */
+function keysFor(name){
+  const n = norm(name);
+  if(!n) return [];
+  const toks = n.split(/[\s,+\/()]+/).filter(Boolean);
+  return Object.keys(SUBST).filter(k => SUBST[k].some(a =>
+    a === n || (a.length > 2 && !a.includes(' ') && toks.includes(a)) || (a.includes(' ') && n.includes(a)) || (a.length <= 2 && toks.length === 1 && toks[0] === a)
+  ));
+}
+function sameSubstance(a, b){
+  if(norm(a.substance) === norm(b.substance)) return true;
+  const ka = keysFor(a.substance), kb = keysFor(b.substance);
+  return ka.some(k => kb.includes(k));
+}
+function comboFor(k1, k2){
+  return COMBOS.find(c => (c[0] === k1 && c[1] === k2) || (c[0] === k2 && c[1] === k1));
+}
+function warningsFor(entry, all){
+  const out = [], seen = new Set();
+  if(!entry || !norm(entry.substance)) return out;
+  const t = entry.ts, keys = keysFor(entry.substance);
+  const others = all.filter(e => e.id !== entry.id);
+  // Mischkonsum in einem Fenster von 12 Stunden
+  others.filter(e => Math.abs(e.ts - t) <= 12 * 36e5 && !sameSubstance(e, entry)).forEach(e => {
+    const k2s = keysFor(e.substance);
+    keys.forEach(k1 => k2s.forEach(k2 => {
+      const c = comboFor(k1, k2);
+      const id = [k1, k2].sort().join('+');
+      if(c && !seen.has(id)){ seen.add(id); out.push({lvl:c[2], txt:`<b>${esc(entry.substance)} + ${esc(e.substance)}:</b> ${c[3]}`}); }
+    }));
+  });
+  // Abstände bei derselben Substanz
+  const prev = others.filter(e => sameSubstance(e, entry) && e.ts < t).sort((a, b) => b.ts - a.ts)[0];
+  if(prev){
+    const h = (t - prev.ts) / 36e5, d = h / 24;
+    if(keys.includes('ghb') && h < 2)
+      out.push({lvl:'danger', txt:`Letzte Dosis G vor ${fmtNum(h * 60)} Min. Bei GHB/GBL liegen Wirkung und Überdosis sehr nah beieinander: mindestens 2 Std. Abstand, genau abmessen, nie mit Alkohol.`});
+    if(keys.includes('mdma') && d >= 1 && d < 42)
+      out.push({lvl:'warn', txt:`Letztes MDMA vor ${Math.round(d)} Tagen. Safer-Use-Empfehlung: mindestens 6 Wochen, besser 3 Monate Pause, damit der Körper sich erholen kann.`});
+    if((keys.includes('lsd') || keys.includes('pilze')) && d >= 0.5 && d < 7)
+      out.push({lvl:'info', txt:`Letztes Mal vor ${Math.round(d)} Tag(en): Die Toleranz ist noch erhöht, die Wirkung fällt schwächer aus. Nicht einfach höher dosieren.`});
+  }
+  // Häufigkeit in den letzten 7 Tagen
+  const days = new Set(others.filter(e => sameSubstance(e, entry) && e.ts <= t && e.ts > t - 7 * DAY).map(e => dayKey(e.ts)));
+  days.add(dayKey(t));
+  if(days.size >= 4)
+    out.push({lvl:'info', txt:`${esc(entry.substance)} an ${days.size} von 7 Tagen. Häufiger Konsum führt zu Gewöhnung. Vielleicht ein paar Tage Pause einplanen?`});
+  return out;
+}
+const alertsHtml = ws => ws.map(w => `<div class="alert ${w.lvl}">${w.lvl === 'danger' ? '⚠️ ' : w.lvl === 'warn' ? '⚠️ ' : 'ℹ️ '}${w.txt}</div>`).join('');
+
+/* ---------- Abgeleitete Daten ---------- */
+function substances(){
+  const m = new Map();
+  [...entries].sort((a, b) => b.ts - a.ts).forEach(e => {
+    const k = norm(e.substance);
+    if(!k) return;
+    if(!m.has(k)) m.set(k, {key:k, name:e.substance.trim(), last:e.ts, count:0, unit:e.unit});
+    m.get(k).count++;
+  });
+  return [...m.values()];
+}
+const sorted = () => [...entries].sort((a, b) => b.ts - a.ts);
+
+/* ---------- Zustand ---------- */
+let view = 'list', search = '', subFilter = '', calMonth = new Date(), calSel = dayKey(Date.now()), statRange = 30, form = null;
+calMonth.setDate(1);
+
+/* ---------- Rendering ---------- */
+const TITLES = {list:'Tagebuch', cal:'Kalender', stats:'Statistik', more:'Mehr'};
+function render(){
+  $('#title').textContent = TITLES[view];
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.view === view));
+  $('#fab').hidden = !(view === 'list' || view === 'cal');
+  const v = $('#view');
+  if(view === 'list') v.innerHTML = listView();
+  if(view === 'cal') v.innerHTML = calView();
+  if(view === 'stats') v.innerHTML = statsView();
+  if(view === 'more') v.innerHTML = moreView();
+  if(view === 'list') renderListItems();
+}
+
+function isStandalone(){ return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; }
+
+function listView(){
+  let banners = '';
+  if(!isStandalone() && !settings.hideInstall)
+    banners += `<div class="banner"><span>📲</span><span>Installiere die App über <b>Teilen → „Zum Home-Bildschirm“</b>. So bleiben deine Einträge dauerhaft gespeichert.</span><button class="x" data-act="hideinstall" aria-label="Ausblenden">×</button></div>`;
+  if(entries.length >= 5 && (!settings.lastBackup || Date.now() - settings.lastBackup > 14 * DAY))
+    banners += `<div class="banner"><span>💾</span><span>${settings.lastBackup ? 'Dein letztes Backup ist über 2 Wochen alt.' : 'Du hast noch kein Backup gemacht.'} <a href="#" data-act="export">Jetzt sichern</a></span></div>`;
+  const subs = substances();
+  const chips = subs.length > 1 ? `<div class="chips"><button class="chip ${subFilter ? '' : 'on'}" data-act="chip" data-sub="">Alle</button>${subs.map(s => `<button class="chip ${subFilter === s.key ? 'on' : ''}" data-act="chip" data-sub="${esc(s.key)}">${esc(s.name)}</button>`).join('')}</div>` : '';
+  const searchBox = entries.length ? `<input id="search" type="search" placeholder="Suchen …" value="${esc(search)}" autocomplete="off">` : '';
+  return banners + searchBox + chips + '<div id="listItems"></div>';
+}
+function renderListItems(){
+  const box = $('#listItems');
+  if(!box) return;
+  if(!entries.length){
+    box.innerHTML = `<div class="empty"><div class="big">📖</div><b>Noch keine Einträge</b><p>Tippe auf <b>+</b>, um deinen ersten Eintrag anzulegen.</p></div>`;
+    return;
+  }
+  const q = norm(search);
+  const list = sorted().filter(e => (!subFilter || norm(e.substance) === subFilter) &&
+    (!q || norm([e.substance, e.note, e.where, e.withWhom, e.effects, e.nextDay, e.route].join(' ')).includes(q)));
+  if(!list.length){ box.innerHTML = `<div class="empty">Keine Treffer.</div>`; return; }
+  let html = '', lastDay = '';
+  list.forEach(e => {
+    const dk = dayKey(e.ts);
+    if(dk !== lastDay){ html += `<div class="dayhead">${fmtDay(e.ts)}</div>`; lastDay = dk; }
+    html += entryCard(e);
+  });
+  box.innerHTML = html;
+}
+function entryCard(e){
+  const r = RATINGS[e.rating];
+  const ws = warningsFor(e, entries);
+  const flag = ws.some(w => w.lvl === 'danger') ? '<span class="flag danger">Risiko</span>' : ws.some(w => w.lvl === 'warn') ? '<span class="flag warn">Hinweis</span>' : '';
+  const amount = e.amount ? `${esc(e.amount)} ${esc(e.unit || '')}` : '';
+  const meta = [amount, esc(e.route || '')].filter(Boolean).join(' · ');
+  const note = e.note || e.effects || '';
+  return `<button class="entry" data-act="open" data-id="${e.id}">
+    <span class="emo">${r ? r.e : '▫️'}</span>
+    <span class="mid"><b>${esc(e.substance)}</b>${flag}<br><span class="small muted">${meta}</span>${note ? `<div class="note">${esc(note)}</div>` : ''}</span>
+    <span class="time">${fmtTime(e.ts)}</span></button>`;
+}
+
+function calView(){
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  const first = new Date(y, m, 1), offset = (first.getDay() + 6) % 7;
+  const byDay = {};
+  entries.forEach(e => { (byDay[dayKey(e.ts)] = byDay[dayKey(e.ts)] || []).push(e); });
+  const today = dayKey(Date.now());
+  let cells = ['Mo','Di','Mi','Do','Fr','Sa','So'].map(d => `<div class="wd">${d}</div>`).join('');
+  for(let i = 0; i < 42; i++){
+    const d = new Date(y, m, 1 - offset + i);
+    if(i >= 35 && d.getMonth() !== m) break;
+    const k = dayKey(d.getTime()), list = byDay[k] || [];
+    const rated = list.filter(e => e.rating);
+    const avg = rated.length ? Math.round(rated.reduce((s, e) => s + e.rating, 0) / rated.length) : 0;
+    const dot = list.length ? `<span class="dot" style="background:${avg ? RATINGS[avg].c : 'var(--muted)'}"></span>` : '<span class="dot none"></span>';
+    cells += `<button class="d ${d.getMonth() !== m ? 'out' : ''} ${k === today ? 'today' : ''} ${k === calSel ? 'sel' : ''}" data-act="calday" data-day="${k}">${d.getDate()}${dot}</button>`;
+  }
+  const monthName = first.toLocaleDateString('de-DE', {month:'long', year:'numeric'});
+  const inMonth = entries.filter(e => { const d = new Date(e.ts); return d.getFullYear() === y && d.getMonth() === m; });
+  const daysUsed = new Set(inMonth.map(e => dayKey(e.ts))).size;
+  const selList = (byDay[calSel] || []).sort((a, b) => a.ts - b.ts);
+  const [sy, sm, sd] = calSel.split('-').map(Number);
+  const selTs = new Date(sy, sm - 1, sd).getTime();
+  return `<div class="calhead"><button data-act="calprev" aria-label="Vorheriger Monat">‹</button><b>${monthName}</b><button data-act="calnext" aria-label="Nächster Monat">›</button></div>
+    <div class="cal">${cells}</div>
+    <p class="small muted">${daysUsed} ${daysUsed === 1 ? 'Tag' : 'Tage'} mit Konsum in diesem Monat · Farbe = Ø Bewertung</p>
+    <div class="dayhead">${fmtDay(selTs)}</div>
+    ${selList.length ? selList.map(entryCard).join('') : '<div class="card muted small">Kein Eintrag an diesem Tag.</div>'}`;
+}
+
+function statsView(){
+  const now = Date.now();
+  const r = statRange ? entries.filter(e => e.ts >= startOfDay(now) - (statRange - 1) * DAY && e.ts <= now + DAY) : entries;
+  const seg = `<div class="seg">${[[30,'30 Tage'],[90,'90 Tage'],[365,'1 Jahr'],[0,'Alles']].map(([v, l]) => `<button class="${statRange === v ? 'on' : ''}" data-act="range" data-range="${v}">${l}</button>`).join('')}</div>`;
+  if(!entries.length) return seg + '<div class="empty"><div class="big">📊</div>Noch keine Daten. Leg zuerst ein paar Einträge an.</div>';
+  const usedDays = new Set(r.map(e => dayKey(e.ts))).size;
+  let span = statRange;
+  if(!statRange){ const firstTs = Math.min(...entries.map(e => e.ts)); span = daysBetween(firstTs, now) + 1; }
+  const rated = r.filter(e => e.rating);
+  const avg = rated.length ? rated.reduce((s, e) => s + e.rating, 0) / rated.length : 0;
+  const kpis = `<div class="kpis">
+    <div class="kpi"><div class="v">${r.length}</div><div class="l">Einträge</div></div>
+    <div class="kpi"><div class="v">${usedDays}</div><div class="l">Tage mit Konsum</div></div>
+    <div class="kpi"><div class="v">${Math.max(0, span - usedDays)}</div><div class="l">konsumfreie Tage</div></div>
+    <div class="kpi"><div class="v">${avg ? RATINGS[Math.round(avg)].e + ' ' + fmtNum(avg) : '–'}</div><div class="l">Ø Bewertung</div></div></div>`;
+
+  // Wochen-Balken (letzte 12 Wochen)
+  const weekStart = ts => { const d = new Date(startOfDay(ts)); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d.getTime(); };
+  const ws0 = weekStart(now), weeks = [];
+  for(let i = 11; i >= 0; i--){ const d = new Date(ws0); d.setDate(d.getDate() - i * 7); weeks.push({ts:d.getTime(), n:0}); }
+  entries.forEach(e => { const w = weeks.find(x => x.ts === weekStart(e.ts)); if(w) w.n++; });
+  const max = Math.max(...weeks.map(w => w.n), 1);
+  const bars = `<div class="card"><div class="bars">${weeks.map(w => `<div class="bar" style="height:${w.n / max * 100}%"><span>${w.n || ''}</span></div>`).join('')}</div>
+    <div class="barlabels">${weeks.map((w, i) => `<span>${i % 2 === 1 ? new Date(w.ts).toLocaleDateString('de-DE', {day:'numeric', month:'numeric'}) : ''}</span>`).join('')}</div></div>`;
+
+  // Pro Substanz
+  const groups = {};
+  r.forEach(e => { const k = norm(e.substance); (groups[k] = groups[k] || {name:e.substance.trim(), list:[]}).list.push(e); });
+  const rows = Object.values(groups).sort((a, b) => b.list.length - a.list.length).map(g => {
+    const l = g.list.sort((a, b) => a.ts - b.ts);
+    const rt = l.filter(e => e.rating);
+    const av = rt.length ? Math.round(rt.reduce((s, e) => s + e.rating, 0) / rt.length) : 0;
+    const allSame = entries.filter(e => norm(e.substance) === norm(g.name));
+    const last = Math.max(...allSame.map(e => e.ts));
+    const ds = [...new Set(l.map(e => startOfDay(e.ts)))].sort((a, b) => a - b);
+    const gap = ds.length > 1 ? (ds[ds.length - 1] - ds[0]) / DAY / (ds.length - 1) : null;
+    return `<tr><td><b>${esc(g.name)}</b><br><span class="small muted">zuletzt ${ago(last)}</span></td><td class="n">${l.length}×</td><td class="n">${gap !== null ? 'alle ' + fmtNum(gap) + ' T.' : '–'}</td><td class="n">${av ? RATINGS[av].e : '–'}</td></tr>`;
+  }).join('');
+  const table = `<div class="card" style="padding:6px 10px"><table class="t"><thead><tr><th>Substanz</th><th class="n">Anzahl</th><th class="n">Ø Abstand</th><th class="n">Ø</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+
+  // Verteilung der Bewertungen
+  const dist = [5, 4, 3, 2, 1].map(v => ({v, n:r.filter(e => e.rating === v).length}));
+  const dmax = Math.max(...dist.map(d => d.n), 1);
+  const distHtml = `<div class="card">${dist.map(d => `<div class="hbar"><span style="width:28px;text-align:center">${RATINGS[d.v].e}</span><div class="track"><div class="fill" style="width:${d.n / dmax * 100}%;background:${RATINGS[d.v].c}"></div></div><span class="small muted" style="width:24px;text-align:right">${d.n}</span></div>`).join('')}</div>`;
+
+  return seg + kpis + '<h3>Einträge pro Woche</h3>' + bars + '<h3>Nach Substanz</h3>' + (rows ? table : '<div class="card muted small">Keine Einträge in diesem Zeitraum.</div>') + '<h3>Wie war es?</h3>' + distHtml;
+}
+
+function moreView(){
+  const pinOn = !!settings.pinHash;
+  return `<h3>Sperre</h3>
+  <div class="card"><b>PIN-Sperre: ${pinOn ? 'an' : 'aus'}</b>
+    <p class="small muted" style="margin:6px 0 0">Die App fragt beim Öffnen nach der PIN. Das schützt vor neugierigen Blicken, die Daten selbst sind aber nicht verschlüsselt.</p>
+    <button class="btn" data-act="setpin">${pinOn ? 'PIN ändern' : 'PIN festlegen'}</button>
+    ${pinOn ? '<button class="btn danger" data-act="delpin">PIN entfernen</button>' : ''}</div>
+
+  <h3>Backup</h3>
+  <div class="card"><span class="small muted">Deine Einträge liegen nur auf diesem Handy. Speichere regelmäßig ein Backup, z. B. in der Dateien-App oder iCloud Drive.</span>
+    <p class="small" style="margin:8px 0 0">${entries.length} Einträge · Letztes Backup: ${settings.lastBackup ? fmtDate(settings.lastBackup) : 'noch keins'}</p>
+    <button class="btn primary" data-act="export">Backup speichern</button>
+    <button class="btn" data-act="import">Backup laden</button></div>
+
+  <h3>App installieren</h3>
+  <div class="card small"><ol class="steps"><li>Diese Seite in <b>Safari</b> öffnen.</li><li>Unten auf <b>Teilen</b> (Quadrat mit Pfeil) tippen.</li><li><b>„Zum Home-Bildschirm“</b> wählen und <b>Hinzufügen</b> tippen.</li><li>Ab jetzt die App über das Icon öffnen.</li></ol>
+    <span class="muted">${isStandalone() ? '✅ Die App läuft bereits als installierte App.' : 'Läuft gerade im Browser.'}</span></div>
+
+  <h3>Hilfe &amp; Notfall</h3>
+  <div class="card small">
+    <p style="margin:0 0 8px"><b>Notfall:</b> <a href="tel:112">112</a> anrufen. Sag ehrlich, was genommen wurde. Das hilft den Rettungskräften.</p>
+    <p style="margin:0 0 8px"><b>Infos &amp; Beratung (anonym):</b> <a href="https://www.drugcom.de" target="_blank" rel="noopener">drugcom.de</a> (BZgA) mit Mischkonsum-Check und Online-Beratung.</p>
+    <p class="muted" style="margin:0">Die Hinweise in der App sind allgemeine Safer-Use-Infos. Sie erkennen nicht jede Substanz und jede Mischung und ersetzen keine Beratung.</p></div>
+
+  <h3>Daten</h3>
+  <div class="card"><button class="btn danger" style="margin-top:0" data-act="wipe">Alle Einträge löschen</button></div>
+  <p class="small muted" style="text-align:center">Tagebuch · Version ${VERSION}</p>`;
+}
+
+/* ---------- Sheet (Formular / Details) ---------- */
+function openSheet(html){ $('#sheetBody').innerHTML = html; $('#sheet').hidden = false; document.body.classList.add('noscroll'); $('#sheetBody').scrollTop = 0; }
+function closeSheet(){ $('#sheet').hidden = true; document.body.classList.remove('noscroll'); form = null; }
+
+function scaleHtml(key, val, icons, small){
+  return `<div class="scale ${small ? 'small' : ''}">${[1,2,3,4,5].map(v => `<button type="button" class="${val === v ? 'on' : ''}" data-act="scale" data-k="${key}" data-v="${v}" aria-label="${RATINGS[v].t}">${icons[v].e || icons[v]}</button>`).join('')}</div>`;
+}
+
+function openForm(e, presetDay){
+  const isEdit = !!e;
+  let ts = Date.now();
+  if(!isEdit && presetDay && presetDay !== dayKey(Date.now())){ const [y, m, d] = presetDay.split('-').map(Number); ts = new Date(y, m - 1, d, 20, 0).getTime(); }
+  e = e || {ts, rating:0, moodBefore:0, moodAfter:0};
+  form = {id:e.id || null, rating:e.rating || 0, moodBefore:e.moodBefore || 0, moodAfter:e.moodAfter || 0, unitTouched:isEdit};
+  const names = [...new Set([...substances().map(s => s.name), ...SUGGEST])];
+  const unitOpts = ['', ...UNITS].map(u => `<option value="${esc(u)}" ${u === (e.unit || '') ? 'selected' : ''}>${u || '–'}</option>`).join('');
+  const routeOpts = ['', ...ROUTES].map(u => `<option value="${esc(u)}" ${u === (e.route || '') ? 'selected' : ''}>${u || '–'}</option>`).join('');
+  const hasExtra = e.moodBefore || e.moodAfter || e.where || e.withWhom || e.effects || e.nextDay;
+  openSheet(`<div class="sheet-head"><button class="link" data-act="close">Abbrechen</button><h2>${isEdit ? 'Bearbeiten' : 'Neuer Eintrag'}</h2><button class="link b" data-act="save">Sichern</button></div>
+    <label class="f" for="f_sub">Substanz</label>
+    <input id="f_sub" list="dl_sub" autocomplete="off" autocapitalize="sentences" placeholder="z. B. Cannabis" value="${esc(e.substance || '')}">
+    <datalist id="dl_sub">${names.map(n => `<option value="${esc(n)}">`).join('')}</datalist>
+    <div class="row">
+      <div><label class="f" for="f_amt">Menge</label><input id="f_amt" inputmode="decimal" placeholder="z. B. 0,5" value="${esc(e.amount || '')}"></div>
+      <div><label class="f" for="f_unit">Einheit</label><select id="f_unit">${unitOpts}</select></div>
+    </div>
+    <label class="f" for="f_ts">Zeitpunkt</label>
+    <input id="f_ts" type="datetime-local" value="${toInput(e.ts)}">
+    <label class="f" for="f_route">Einnahme</label>
+    <select id="f_route">${routeOpts}</select>
+    <label class="f">Wie war es?</label>
+    ${scaleHtml('rating', form.rating, RATINGS)}
+    <div class="scale-label" id="lbl_rating">${form.rating ? RATINGS[form.rating].t : 'Tippe zum Bewerten'}</div>
+    <label class="f" for="f_note">Notizen</label>
+    <textarea id="f_note" placeholder="Wie hat es sich angefühlt? Was war gut, was nicht?">${esc(e.note || '')}</textarea>
+    <div id="f_warn"></div>
+    <details ${hasExtra ? 'open' : ''}><summary>Mehr Details</summary>
+      <label class="f">Stimmung vorher</label>${scaleHtml('moodBefore', form.moodBefore, MOODS, true)}
+      <label class="f">Stimmung nachher</label>${scaleHtml('moodAfter', form.moodAfter, MOODS, true)}
+      <div class="row">
+        <div><label class="f" for="f_where">Wo?</label><input id="f_where" placeholder="z. B. zu Hause" value="${esc(e.where || '')}"></div>
+        <div><label class="f" for="f_with">Mit wem?</label><input id="f_with" placeholder="z. B. allein" value="${esc(e.withWhom || '')}"></div>
+      </div>
+      <label class="f" for="f_effects">Nebenwirkungen</label>
+      <textarea id="f_effects" placeholder="z. B. Herzrasen, Übelkeit, Kopfschmerzen">${esc(e.effects || '')}</textarea>
+      <label class="f" for="f_next">Am nächsten Tag</label>
+      <textarea id="f_next" placeholder="Kannst du später ergänzen">${esc(e.nextDay || '')}</textarea>
+    </details>
+    <button class="btn primary" data-act="save">Sichern</button>
+    ${isEdit ? `<button class="btn danger" data-act="del" data-id="${e.id}">Eintrag löschen</button>` : ''}`);
+  updateFormWarnings();
+  if(!isEdit) setTimeout(() => $('#f_sub') && $('#f_sub').focus(), 250);
+}
+function readForm(){
+  return {
+    id: form.id || uid(),
+    substance: $('#f_sub').value.trim(),
+    amount: $('#f_amt').value.trim(),
+    unit: $('#f_unit').value,
+    ts: fromInput($('#f_ts').value),
+    route: $('#f_route').value,
+    rating: form.rating,
+    note: $('#f_note').value.trim(),
+    moodBefore: form.moodBefore,
+    moodAfter: form.moodAfter,
+    where: $('#f_where').value.trim(),
+    withWhom: $('#f_with').value.trim(),
+    effects: $('#f_effects').value.trim(),
+    nextDay: $('#f_next').value.trim()
+  };
+}
+function updateFormWarnings(){
+  if(!form || !$('#f_warn')) return;
+  const e = readForm();
+  e.id = form.id || '__new__';
+  $('#f_warn').innerHTML = alertsHtml(warningsFor(e, entries));
+}
+function saveForm(){
+  const e = readForm();
+  if(!e.substance){ toast('Bitte eine Substanz eintragen'); $('#f_sub').focus(); return; }
+  const old = entries.find(x => x.id === e.id);
+  e.created = old ? old.created : Date.now();
+  e.updated = Date.now();
+  entries = old ? entries.map(x => x.id === e.id ? e : x) : [...entries, e];
+  if(!saveEntries()) return;
+  closeSheet();
+  calSel = dayKey(e.ts);
+  render();
+  const ws = warningsFor(e, entries).filter(w => w.lvl !== 'info');
+  toast(ws.length ? 'Gespeichert – bitte Hinweis beachten' : 'Gespeichert');
+}
+
+function openDetail(id){
+  const e = entries.find(x => x.id === id);
+  if(!e) return;
+  const r = RATINGS[e.rating];
+  const row = (k, v) => v ? `<dt>${k}</dt><dd>${v}</dd>` : '';
+  openSheet(`<div class="sheet-head"><button class="link" data-act="close">Schließen</button><h2>${esc(e.substance)}</h2><button class="link b" data-act="edit" data-id="${e.id}">Bearbeiten</button></div>
+    <div style="text-align:center;margin:16px 0 4px"><div style="font-size:52px">${r ? r.e : '▫️'}</div><div class="muted">${r ? r.t : 'nicht bewertet'}</div></div>
+    <dl class="kv">
+      ${row('Wann', `${fmtDay(e.ts)}, ${fmtTime(e.ts)} Uhr`)}
+      ${row('Menge', e.amount ? esc(e.amount + ' ' + (e.unit || '')) : '')}
+      ${row('Einnahme', esc(e.route))}
+      ${row('Stimmung', (e.moodBefore || e.moodAfter) ? `vorher ${MOODS[e.moodBefore] || '–'} → nachher ${MOODS[e.moodAfter] || '–'}` : '')}
+      ${row('Wo', esc(e.where))}
+      ${row('Mit wem', esc(e.withWhom))}
+      ${row('Notizen', esc(e.note))}
+      ${row('Nebenwirkungen', esc(e.effects))}
+      ${row('Nächster Tag', esc(e.nextDay))}
+    </dl>
+    ${alertsHtml(warningsFor(e, entries))}
+    ${!e.nextDay && Date.now() - e.ts > 12 * 36e5 && Date.now() - e.ts < 4 * DAY ? '<div class="alert info">💡 Wie ging es dir am nächsten Tag? Tippe auf „Bearbeiten“, um es zu ergänzen.</div>' : ''}
+    <button class="btn" data-act="edit" data-id="${e.id}">Bearbeiten</button>
+    <button class="btn danger" data-act="del" data-id="${e.id}">Löschen</button>`);
+}
+
+/* ---------- PIN ---------- */
+async function hash(s){
+  if(window.crypto && crypto.subtle){
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+  let h = 0; for(const c of s){ h = (h * 31 + c.charCodeAt(0)) | 0; } return 'x' + h;
+}
+function openPinForm(){
+  openSheet(`<div class="sheet-head"><button class="link" data-act="close">Abbrechen</button><h2>PIN festlegen</h2><span style="min-width:80px"></span></div>
+    <label class="f" for="p1">Neue PIN (4–8 Ziffern)</label><input id="p1" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off">
+    <label class="f" for="p2">PIN wiederholen</label><input id="p2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off">
+    <div class="alert warn">Wenn du die PIN vergisst, kommst du nicht mehr an deine Einträge, außer über ein Backup.</div>
+    <button class="btn primary" data-act="savepin">PIN speichern</button>`);
+  setTimeout(() => $('#p1').focus(), 250);
+}
+async function savePin(){
+  const a = $('#p1').value, b = $('#p2').value;
+  if(!/^\d{4,8}$/.test(a)){ toast('Bitte 4–8 Ziffern eingeben'); return; }
+  if(a !== b){ toast('Die PINs stimmen nicht überein'); return; }
+  settings.pinSalt = uid();
+  settings.pinHash = await hash(settings.pinSalt + a);
+  saveSettings(); closeSheet(); render(); toast('PIN gespeichert');
+}
+function lock(){
+  if(!settings.pinHash) return;
+  $('#lock').hidden = false; $('#lockPin').value = ''; $('#lockMsg').textContent = '';
+  setTimeout(() => $('#lockPin').focus(), 100);
+}
+async function unlock(){
+  const v = $('#lockPin').value;
+  if(await hash(settings.pinSalt + v) === settings.pinHash){ $('#lock').hidden = true; $('#lockPin').blur(); }
+  else { $('#lockMsg').textContent = 'Falsche PIN'; $('#lockPin').value = ''; }
+}
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) hiddenAt = Date.now();
+  else if(settings.pinHash && hiddenAt && Date.now() - hiddenAt > 30000) lock();
+});
+
+/* ---------- Backup ---------- */
+async function exportBackup(){
+  const data = JSON.stringify({app:'konsum-tagebuch', version:1, exported:new Date().toISOString(), entries}, null, 1);
+  const name = `tagebuch-backup-${dayKey(Date.now())}.json`;
+  const file = new File([data], name, {type:'application/json'});
+  const done = () => { settings.lastBackup = Date.now(); saveSettings(); render(); toast('Backup erstellt'); };
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:name}); done(); return; }
+    catch(err){ if(err.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  done();
+}
+function importBackup(file){
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const data = JSON.parse(rd.result);
+      const list = Array.isArray(data) ? data : data.entries;
+      if(!Array.isArray(list)) throw new Error('Keine Einträge gefunden');
+      const str = v => typeof v === 'string' ? v.slice(0, 5000) : '';
+      const num = v => (Number.isInteger(v) && v >= 0 && v <= 5) ? v : 0;
+      const clean = list.filter(x => x && typeof x.ts === 'number' && typeof x.substance === 'string').map(x => ({
+        id: str(x.id) || uid(), ts: x.ts, substance: str(x.substance), amount: str(x.amount), unit: str(x.unit), route: str(x.route),
+        rating: num(x.rating), moodBefore: num(x.moodBefore), moodAfter: num(x.moodAfter), note: str(x.note), where: str(x.where),
+        withWhom: str(x.withWhom), effects: str(x.effects), nextDay: str(x.nextDay), created: x.created || x.ts, updated: x.updated || x.ts
+      }));
+      const ids = new Set(entries.map(e => e.id));
+      const add = clean.filter(e => !ids.has(e.id));
+      if(!confirm(`${clean.length} Einträge im Backup gefunden, davon ${add.length} neu. Hinzufügen?`)) return;
+      entries = [...entries, ...add];
+      saveEntries(); render(); toast(`${add.length} Einträge geladen`);
+    }catch(err){ alert('Das Backup konnte nicht gelesen werden: ' + err.message); }
+  };
+  rd.readAsText(file);
+}
+
+/* ---------- Ereignisse ---------- */
+document.addEventListener('click', async ev => {
+  const t = ev.target.closest('[data-act]');
+  if(!t) return;
+  const act = t.dataset.act;
+  if(t.tagName === 'A') ev.preventDefault();
+  switch(act){
+    case 'tab': view = t.dataset.view; window.scrollTo(0, 0); render(); break;
+    case 'new': openForm(null, view === 'cal' ? calSel : null); break;
+    case 'open': openDetail(t.dataset.id); break;
+    case 'edit': openForm(entries.find(x => x.id === t.dataset.id)); break;
+    case 'close': closeSheet(); break;
+    case 'save': saveForm(); break;
+    case 'del':
+      if(confirm('Diesen Eintrag wirklich löschen?')){ entries = entries.filter(x => x.id !== t.dataset.id); saveEntries(); closeSheet(); render(); toast('Gelöscht'); }
+      break;
+    case 'scale': {
+      const k = t.dataset.k, v = +t.dataset.v;
+      form[k] = form[k] === v ? 0 : v;
+      t.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.v === form[k]));
+      if(k === 'rating') $('#lbl_rating').textContent = form.rating ? RATINGS[form.rating].t : 'Tippe zum Bewerten';
+      break;
+    }
+    case 'chip': subFilter = t.dataset.sub; render(); break;
+    case 'calprev': calMonth.setMonth(calMonth.getMonth() - 1); render(); break;
+    case 'calnext': calMonth.setMonth(calMonth.getMonth() + 1); render(); break;
+    case 'calday': calSel = t.dataset.day; render(); break;
+    case 'range': statRange = +t.dataset.range; render(); break;
+    case 'export': exportBackup(); break;
+    case 'import': $('#importFile').click(); break;
+    case 'setpin': openPinForm(); break;
+    case 'savepin': savePin(); break;
+    case 'delpin':
+      if(confirm('PIN-Sperre ausschalten?')){ delete settings.pinHash; delete settings.pinSalt; saveSettings(); render(); toast('PIN entfernt'); }
+      break;
+    case 'unlock': unlock(); break;
+    case 'hideinstall': settings.hideInstall = true; saveSettings(); render(); break;
+    case 'wipe':
+      if(confirm('Wirklich ALLE Einträge löschen? Das kann nicht rückgängig gemacht werden.') && confirm('Ganz sicher? Hast du ein Backup?')){
+        entries = []; saveEntries(); render(); toast('Alle Einträge gelöscht');
+      }
+      break;
+  }
+});
+$('#sheet').addEventListener('click', ev => { if(ev.target.id === 'sheet') closeSheet(); });
+document.addEventListener('input', ev => {
+  if(ev.target.id === 'search'){ search = ev.target.value; renderListItems(); }
+  if(ev.target.id === 'f_unit') form && (form.unitTouched = true);
+  if(['f_sub', 'f_ts'].includes(ev.target.id)) updateFormWarnings();
+});
+document.addEventListener('change', ev => {
+  if(ev.target.id === 'f_sub' && form && !form.unitTouched){
+    const s = substances().find(x => x.key === norm(ev.target.value));
+    if(s && s.unit) $('#f_unit').value = s.unit;
+  }
+  if(ev.target.id === 'f_unit' && form) form.unitTouched = true;
+  if(ev.target.id === 'f_ts') updateFormWarnings();
+});
+$('#lockPin').addEventListener('keydown', ev => { if(ev.key === 'Enter') unlock(); });
+$('#importFile').addEventListener('change', ev => { const f = ev.target.files[0]; if(f) importBackup(f); ev.target.value = ''; });
+
+/* ---------- Start ---------- */
+render();
+lock();
+if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+if('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>

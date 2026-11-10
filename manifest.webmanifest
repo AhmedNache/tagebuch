@@ -1,0 +1,16 @@
+{
+  "name": "Tagebuch",
+  "short_name": "Tagebuch",
+  "description": "Persönliches Konsum-Tagebuch – Daten bleiben auf dem Gerät.",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1418",
+  "theme_color": "#0f1418",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
